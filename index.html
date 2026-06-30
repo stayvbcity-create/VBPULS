@@ -1,0 +1,1917 @@
+<!DOCTYPE html>
+<html lang="sr-Latn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>VBPuls — Vrnjačka Banja</title>
+<meta name="description" content="Digitalni puls Vrnjačke Banje — vesti, događaji, popusti i komunalne informacije za meštane.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VBPuls">
+<meta name="theme-color" content="#060d18">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon192.png">
+<link rel="apple-touch-icon" href="./icon192.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
+
+<style>
+/* ═══════════════════════════════════════════════════
+   VBPuls — index.html styles v1.0
+   Vrnjačka Banja · Digitalna infrastruktura građana
+═══════════════════════════════════════════════════ */
+
+:root {
+  --bg:      #060d18;
+  --bg2:     #0b1628;
+  --bg3:     #0f1f3a;
+  --bg4:     #142848;
+  --border:  rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.11);
+  --border3: rgba(255,255,255,0.18);
+  --text:    #e6efff;
+  --muted:   rgba(160,190,240,0.55);
+  --muted2:  rgba(160,190,240,0.28);
+  --green:   #1db954;
+  --green2:  #15803d;
+  --green3:  #a7f3c2;
+  --blue:    #3b82f6;
+  --blue2:   #1e40af;
+  --blue3:   #93c5fd;
+  --gold:    #f59e0b;
+  --gold2:   #fbbf24;
+  --gold3:   #fef3c7;
+  --red:     #ef4444;
+  --red2:    #fca5a5;
+  --r:       18px;
+  --r2:      22px;
+  --sb:      env(safe-area-inset-bottom, 0px);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  min-height:100dvh;
+  overflow-x:hidden;
+  max-width:430px;
+  margin:0 auto;
+}
+
+/* ambient glow */
+body::before{
+  content:'';position:fixed;top:-200px;left:-100px;
+  width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(circle,rgba(29,185,84,0.04),transparent 65%);
+  pointer-events:none;z-index:0;
+}
+body::after{
+  content:'';position:fixed;bottom:-150px;right:-100px;
+  width:400px;height:400px;border-radius:50%;
+  background:radial-gradient(circle,rgba(59,130,246,0.05),transparent 65%);
+  pointer-events:none;z-index:0;
+}
+
+/* ── SCREENS ── */
+.screen{display:none;min-height:100dvh;position:relative;z-index:1}
+.screen.active{display:block}
+
+/* ════════════════════════════════════════
+   ONBOARD
+════════════════════════════════════════ */
+.onb-wrap{min-height:100dvh;display:flex;flex-direction:column}
+
+.onb-steps{
+  display:flex;align-items:center;justify-content:center;
+  gap:6px;padding:20px 0 0;
+}
+.step-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--border3);transition:all 0.35s;
+}
+.step-dot.active{
+  width:24px;border-radius:3px;
+  background:linear-gradient(90deg,var(--green),var(--blue));
+}
+
+.onb-slides{
+  flex:1;position:relative;overflow:hidden;
+  min-height:480px;
+}
+.onb-slide{
+  position:absolute;top:0;left:0;right:0;
+  padding:28px 24px 0;
+  display:flex;flex-direction:column;align-items:center;
+  transition:transform 0.4s cubic-bezier(0.22,1,0.36,1);
+}
+
+/* Logo */
+.vbp-logo{
+  width:84px;height:84px;border-radius:24px;
+  background:linear-gradient(145deg,#0b1e0f,#071525);
+  border:1px solid rgba(29,185,84,0.22);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:24px;
+  position:relative;overflow:hidden;
+  box-shadow:0 20px 50px rgba(0,0,0,0.5),0 0 40px rgba(29,185,84,0.08);
+}
+.vbp-logo::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(29,185,84,0.7),rgba(251,191,36,0.5),transparent);
+}
+
+.onb-h1{
+  font-size:26px;font-weight:900;letter-spacing:-0.04em;
+  text-align:center;line-height:1.1;margin-bottom:10px;
+}
+.onb-h1 .brand{
+  background:linear-gradient(135deg,var(--green),#22c55e,var(--blue));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.onb-desc{
+  font-size:13px;color:var(--muted);font-weight:500;
+  text-align:center;line-height:1.7;max-width:285px;margin-bottom:28px;
+}
+
+/* Feature list on slide 0 */
+.feat-list{width:100%;display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.feat-row{
+  display:flex;align-items:center;gap:12px;
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:14px;padding:11px 14px;
+}
+.feat-ico{
+  width:38px;height:38px;border-radius:11px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.feat-t{font-size:13px;font-weight:700;color:var(--text)}
+.feat-s{font-size:11px;color:var(--muted);font-weight:500;margin-top:1px}
+
+/* Form */
+.f-label{
+  font-size:10px;font-weight:800;letter-spacing:0.12em;
+  color:var(--muted2);text-transform:uppercase;margin-bottom:5px;display:block;
+}
+.f-input{
+  width:100%;padding:13px 15px;border-radius:13px;
+  background:var(--bg2);border:1.5px solid var(--border2);
+  color:var(--text);font-size:15px;font-weight:600;
+  margin-bottom:10px;outline:none;font-family:inherit;
+  transition:border-color 0.2s,box-shadow 0.2s;
+  -webkit-appearance:none;
+}
+.f-input:focus{
+  border-color:rgba(29,185,84,0.45);
+  box-shadow:0 0 0 3px rgba(29,185,84,0.08);
+}
+.f-input::placeholder{color:var(--muted2)}
+.f-select{
+  appearance:none;-webkit-appearance:none;-moz-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a0bef0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 14px center;
+  padding-right:38px;
+  cursor:pointer;
+}
+.f-select option{background:var(--bg2);color:var(--text)}
+.f-hint{font-size:11px;color:var(--muted2);font-weight:500;line-height:1.6;margin:-4px 0 12px;padding:0 2px}
+.f-err{font-size:11px;color:var(--red2);font-weight:600;min-height:14px;margin-bottom:8px;text-align:center}
+
+.consent-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:18px}
+.consent-cb{
+  width:20px;height:20px;flex-shrink:0;border-radius:6px;
+  accent-color:var(--green);margin-top:1px;cursor:pointer;
+}
+.consent-txt{font-size:11px;color:var(--muted);font-weight:500;line-height:1.6}
+.consent-txt strong{color:rgba(160,190,240,0.75)}
+
+/* Install steps slide 2 */
+.install-list{width:100%;display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.install-row{
+  display:flex;align-items:center;gap:12px;
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:13px;padding:12px 14px;
+}
+.install-num{
+  width:28px;height:28px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--green2),var(--blue2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:900;color:white;
+}
+.install-t{font-size:12px;font-weight:700}
+.install-s{font-size:10px;color:var(--muted);font-weight:500;margin-top:1px}
+
+.success-ico{
+  width:68px;height:68px;border-radius:50%;margin-bottom:18px;
+  background:rgba(29,185,84,0.10);border:1.5px solid rgba(29,185,84,0.28);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 28px rgba(29,185,84,0.10);
+}
+
+.onb-nav{
+  padding:18px 24px calc(22px + var(--sb));
+  display:flex;flex-direction:column;gap:0;
+}
+
+/* Buttons */
+.btn-p{
+  width:100%;padding:14px;border-radius:15px;border:none;
+  background:linear-gradient(135deg,var(--green2) 0%,#1a9c48 45%,var(--blue2) 100%);
+  color:white;font-size:14px;font-weight:800;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 8px 24px rgba(21,128,61,0.28),0 2px 8px rgba(0,0,0,0.3);
+  transition:transform 0.15s,opacity 0.15s;font-family:inherit;
+  -webkit-appearance:none;
+}
+.btn-p:active{transform:scale(0.97)}
+.btn-p:disabled{opacity:0.5;cursor:default}
+.btn-g{
+  width:100%;padding:12px;border-radius:15px;border:1.5px solid var(--border2);
+  background:transparent;color:var(--muted);font-size:13px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all 0.15s;font-family:inherit;margin-top:8px;-webkit-appearance:none;
+}
+.btn-g:active{border-color:var(--border3);color:var(--text)}
+
+/* ════════════════════════════════════════
+   TOPBAR
+════════════════════════════════════════ */
+.topbar{
+  position:sticky;top:0;z-index:100;
+  background:rgba(6,13,24,0.94);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--border);
+  padding:11px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.tb-l{display:flex;align-items:center;gap:10px}
+.tb-logo{
+  width:36px;height:36px;border-radius:11px;
+  background:linear-gradient(145deg,#0b1e0f,#071525);
+  border:1px solid rgba(29,185,84,0.18);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 12px rgba(29,185,84,0.10);
+  flex-shrink:0;
+}
+.tb-title{font-size:16px;font-weight:900;letter-spacing:-0.03em}
+.tb-sub{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:0.03em;margin-top:1px}
+.pulse-dot{
+  display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--green);margin-left:3px;margin-bottom:1px;
+  box-shadow:0 0 5px var(--green);
+  animation:blink 2.5s infinite;vertical-align:middle;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.35}}
+
+.notif-btn{
+  width:38px;height:38px;border-radius:50%;
+  background:var(--bg2);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;position:relative;transition:background 0.15s;
+}
+.notif-btn:active{background:var(--bg3)}
+.n-dot{
+  position:absolute;top:7px;right:7px;
+  width:8px;height:8px;border-radius:50%;
+  background:var(--red);border:2px solid var(--bg);
+}
+
+/* ════════════════════════════════════════
+   BOTTOM NAV
+════════════════════════════════════════ */
+.bnav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:430px;
+  background:rgba(6,13,24,0.97);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-top:1px solid var(--border);
+  display:flex;
+  padding-bottom:calc(6px + var(--sb));
+  z-index:100;
+}
+.ni{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;gap:4px;
+  padding:10px 4px 6px;cursor:pointer;
+}
+.ni-ico{
+  width:46px;height:32px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:10px;transition:background 0.2s;
+}
+.ni.active .ni-ico{background:rgba(29,185,84,0.10)}
+.ni-lbl{
+  font-size:9px;font-weight:700;letter-spacing:0.03em;
+  color:var(--muted2);transition:color 0.2s;
+}
+.ni.active .ni-lbl{color:var(--green)}
+.ni svg{transition:opacity 0.2s}
+.ni:not(.active) svg{opacity:0.38}
+
+/* ════════════════════════════════════════
+   PAGES
+════════════════════════════════════════ */
+.page{padding:0 0 96px;display:none}
+.page.active{display:block}
+
+/* ── HERO ── */
+.hero{
+  margin:12px;border-radius:var(--r2);
+  background:linear-gradient(145deg,#081a10 0%,#091526 55%,#070f1e 100%);
+  border:1px solid rgba(29,185,84,0.15);
+  padding:20px 20px 18px;
+  position:relative;overflow:hidden;
+}
+.hero-line{
+  position:absolute;top:0;left:0;right:0;height:1.5px;
+  background:linear-gradient(90deg,transparent 4%,var(--green) 28%,var(--gold2) 52%,var(--blue) 74%,transparent 96%);
+  opacity:0.65;
+}
+.hero-orb1{position:absolute;top:-80px;right:-80px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(29,185,84,0.08),transparent 65%);pointer-events:none}
+.hero-orb2{position:absolute;bottom:-60px;left:-40px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,0.07),transparent 65%);pointer-events:none}
+.hero-date{
+  font-size:10px;font-weight:800;letter-spacing:0.14em;
+  color:var(--green);text-transform:uppercase;
+  display:flex;align-items:center;gap:5px;margin-bottom:8px;
+}
+.hero-h{font-size:22px;font-weight:900;letter-spacing:-0.035em;line-height:1.15;margin-bottom:9px}
+.hero-h span{color:var(--green)}
+.hero-sub{font-size:12px;color:var(--muted);font-weight:500;line-height:1.65}
+.chips{display:flex;gap:6px;margin-top:13px;flex-wrap:wrap}
+.chip{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 10px;border-radius:20px;
+  font-size:10px;font-weight:700;letter-spacing:0.03em;
+}
+.cg{background:rgba(29,185,84,0.08);border:1px solid rgba(29,185,84,0.20);color:var(--green3)}
+.cb{background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.20);color:var(--blue3)}
+.co{background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.20);color:var(--gold3)}
+
+/* ── ALERT STRIP ── */
+.alert-strip{
+  margin:12px 12px 0;
+  background:linear-gradient(90deg,rgba(239,68,68,0.09),rgba(239,68,68,0.04));
+  border:1px solid rgba(239,68,68,0.22);
+  border-radius:14px;padding:11px 14px;
+  display:flex;align-items:center;gap:12px;cursor:pointer;
+  transition:opacity 0.15s;
+}
+.alert-strip:active{opacity:0.8}
+.alert-ico{
+  width:38px;height:38px;border-radius:11px;flex-shrink:0;
+  background:rgba(239,68,68,0.09);
+  display:flex;align-items:center;justify-content:center;
+}
+.alert-t{font-size:12px;font-weight:800;color:var(--red2);margin-bottom:2px}
+.alert-d{font-size:11px;color:var(--muted);font-weight:500}
+
+/* ── SECTION LABEL ── */
+.slbl{
+  padding:18px 16px 10px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.slbl-l{display:flex;align-items:center;gap:8px}
+.slbl-ico{
+  width:28px;height:28px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+}
+.slbl-t{font-size:14px;font-weight:800;letter-spacing:-0.01em}
+.slbl-more{font-size:11px;font-weight:700;color:var(--green);cursor:pointer;padding:4px 0}
+
+/* ── NEWS SCROLL ── */
+.nscroll{
+  display:flex;gap:10px;
+  padding:0 12px;overflow-x:auto;scrollbar-width:none;
+}
+.nscroll::-webkit-scrollbar{display:none}
+
+.nc{
+  flex-shrink:0;width:216px;
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--r2);overflow:hidden;cursor:pointer;
+  transition:transform 0.15s;position:relative;
+}
+.nc::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent);
+}
+.nc:active{transform:scale(0.97)}
+.nc-img{
+  width:100%;height:94px;
+  display:flex;align-items:center;justify-content:center;
+}
+.nc-body{padding:10px 12px 13px}
+.nc-cat{font-size:9px;font-weight:900;letter-spacing:0.10em;text-transform:uppercase;margin-bottom:4px}
+.nc-title{font-size:12px;font-weight:800;line-height:1.4;color:var(--text)}
+.nc-time{font-size:10px;color:var(--muted2);margin-top:4px;font-weight:500}
+
+/* Loading shimmer na news cards */
+.nc-skeleton{
+  flex-shrink:0;width:216px;
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--r2);overflow:hidden;
+}
+.shimmer{
+  background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.4s infinite;
+}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ── EVENT CARDS ── */
+.ec{
+  margin:0 12px 8px;
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--r2);padding:14px 16px;
+  display:flex;gap:14px;cursor:pointer;
+  transition:transform 0.15s;position:relative;overflow:hidden;
+}
+.ec:active{transform:scale(0.98)}
+.ec-date{
+  width:46px;flex-shrink:0;border-radius:12px;
+  background:var(--bg3);border:1px solid var(--border2);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:7px 0;
+}
+.ec-day{font-size:20px;font-weight:900;line-height:1}
+.ec-mon{font-size:9px;font-weight:800;color:var(--green);text-transform:uppercase;margin-top:1px}
+.ec-title{font-size:13px;font-weight:800;line-height:1.3;margin-bottom:3px}
+.ec-meta{font-size:11px;color:var(--muted);font-weight:500}
+.tag{display:inline-block;margin-top:6px;padding:3px 9px;border-radius:20px;font-size:9px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase}
+.tg{background:rgba(29,185,84,0.08);border:1px solid rgba(29,185,84,0.20);color:var(--green3)}
+.tb{background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.20);color:var(--blue3)}
+.to{background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.20);color:var(--gold3)}
+.tr{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.20);color:var(--red2)}
+.tp{background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.20);color:#c4b5fd}
+
+/* ── POPUST SCROLL ── */
+.pscroll{
+  display:flex;gap:10px;
+  padding:0 12px;overflow-x:auto;scrollbar-width:none;
+}
+.pscroll::-webkit-scrollbar{display:none}
+.pc{
+  flex-shrink:0;width:148px;
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--r2);padding:14px 12px;cursor:pointer;
+  transition:transform 0.15s;position:relative;overflow:hidden;
+}
+.pc::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(251,191,36,0.32),transparent);
+}
+.pc:active{transform:scale(0.95)}
+.pc-ico{
+  width:42px;height:42px;border-radius:12px;margin-bottom:10px;
+  display:flex;align-items:center;justify-content:center;
+}
+.pc-pct{
+  font-size:26px;font-weight:900;letter-spacing:-0.04em;line-height:1;
+  background:linear-gradient(135deg,var(--gold2),var(--gold3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.pc-place{font-size:11px;font-weight:800;margin-top:3px;color:var(--text)}
+.pc-desc{font-size:10px;color:var(--muted);margin-top:2px;font-weight:500;line-height:1.4}
+.pc-badge{
+  margin-top:8px;display:inline-block;padding:3px 8px;border-radius:20px;
+  font-size:9px;font-weight:800;letter-spacing:0.05em;
+  background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.20);color:var(--gold3);
+}
+
+/* ── KOMUNAL GRID ── */
+.kgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px}
+.kc{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:16px;padding:14px 12px;cursor:pointer;
+  transition:transform 0.12s;
+}
+.kc:active{transform:scale(0.96)}
+.kc-ico{
+  width:40px;height:40px;border-radius:12px;margin-bottom:9px;
+  display:flex;align-items:center;justify-content:center;
+}
+.kc-t{font-size:12px;font-weight:800;margin-bottom:2px}
+.kc-s{font-size:10px;color:var(--muted);font-weight:500}
+
+/* ── VESTI PAGE ── */
+.ftabs{
+  display:flex;gap:6px;padding:10px 12px 0;overflow-x:auto;scrollbar-width:none;
+}
+.ftabs::-webkit-scrollbar{display:none}
+.ftab{
+  flex-shrink:0;padding:6px 13px;border-radius:20px;
+  font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;
+  background:var(--bg2);border:1px solid var(--border2);
+  color:var(--muted);transition:all 0.15s;-webkit-appearance:none;
+}
+.ftab.active{
+  background:rgba(29,185,84,0.09);border-color:rgba(29,185,84,0.28);color:var(--green3);
+}
+
+.nli{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--r2);padding:14px;
+  margin:0 12px 8px;
+  display:flex;gap:12px;align-items:flex-start;
+  cursor:pointer;transition:transform 0.12s;
+}
+.nli:active{transform:scale(0.98)}
+.nli-ico{
+  width:44px;height:44px;border-radius:13px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.nli-cat{font-size:9px;font-weight:900;letter-spacing:0.10em;text-transform:uppercase;margin-bottom:3px}
+.nli-t{font-size:13px;font-weight:800;line-height:1.3;margin-bottom:3px}
+.nli-s{font-size:11px;color:var(--muted);font-weight:500;line-height:1.45}
+.nli-time{font-size:10px;color:var(--muted2);margin-top:5px;font-weight:500}
+
+/* ── MAPA ── */
+.mapa-box{
+  margin:10px 12px;height:190px;border-radius:var(--r2);
+  background:var(--bg2);border:1px solid var(--border2);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:8px;position:relative;overflow:hidden;
+}
+.mapa-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(59,130,246,0.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(59,130,246,0.05) 1px,transparent 1px);
+  background-size:26px 26px;
+}
+
+/* ── ZNACKA ── */
+.znacka-outer{padding:14px 13px 100px;display:flex;flex-direction:column;align-items:center;gap:14px}
+
+.znacka-card{
+  width:100%;
+  background:linear-gradient(155deg,#071520 0%,#091c10 45%,#071020 100%);
+  border:1px solid rgba(29,185,84,0.16);
+  border-radius:26px;overflow:hidden;position:relative;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.04),
+    0 24px 60px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.zcard-top{
+  position:absolute;top:0;left:0;right:0;height:1.5px;
+  background:linear-gradient(90deg,transparent 4%,var(--green) 28%,var(--gold2) 52%,var(--blue) 74%,transparent 96%);
+}
+.zcard-orb{
+  position:absolute;top:-100px;right:-100px;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle,rgba(29,185,84,0.06),transparent 60%);
+  pointer-events:none;
+}
+.zcard-orb2{
+  position:absolute;bottom:-80px;left:-60px;
+  width:200px;height:200px;border-radius:50%;
+  background:radial-gradient(circle,rgba(59,130,246,0.05),transparent 60%);
+  pointer-events:none;
+}
+
+.zcard-head{
+  padding:18px 20px 10px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:relative;z-index:1;
+}
+.zcard-city{display:flex;align-items:center;gap:7px}
+.zcard-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--green);box-shadow:0 0 8px var(--green);
+  animation:blink 2.5s infinite;
+}
+.zcard-city-lbl{font-size:9px;font-weight:800;letter-spacing:0.16em;text-transform:uppercase;color:var(--green)}
+.zcard-yr{
+  font-size:10px;font-weight:700;color:var(--muted2);
+  padding:3px 8px;border-radius:8px;
+  background:rgba(255,255,255,0.04);border:1px solid var(--border);
+}
+
+.zcard-body{padding:2px 20px 16px;position:relative;z-index:1}
+.z-ava-ring{
+  width:72px;height:72px;border-radius:50%;
+  padding:2px;
+  background:linear-gradient(135deg,var(--green),var(--blue));
+  margin-bottom:13px;
+}
+.z-ava-in{
+  width:100%;height:100%;border-radius:50%;
+  background:linear-gradient(135deg,#0e2a14,#0a1a2e);
+  display:flex;align-items:center;justify-content:center;
+}
+.z-name{font-size:21px;font-weight:900;letter-spacing:-0.03em;line-height:1.1;margin-bottom:4px}
+.z-status{
+  font-size:11px;font-weight:600;margin-bottom:14px;
+  display:flex;align-items:center;gap:6px;color:var(--muted);
+}
+.z-sdot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green)}
+.z-mail-row{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(29,185,84,0.05);border:1px solid rgba(29,185,84,0.11);
+  border-radius:10px;padding:8px 10px;margin-bottom:14px;
+}
+.z-mail-lbl{font-size:10px;color:var(--green);font-weight:700}
+.z-mail-val{font-size:11px;color:var(--muted);font-weight:600}
+
+.z-id-lbl{font-size:9px;font-weight:800;letter-spacing:0.12em;color:var(--muted2);text-transform:uppercase;margin-bottom:5px}
+.z-id{
+  font-family:'Courier New',monospace;font-size:15px;font-weight:900;
+  letter-spacing:0.18em;
+  background:linear-gradient(135deg,var(--gold2),var(--gold3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  display:inline-block;margin-bottom:14px;
+}
+
+.z-stats{display:flex;gap:6px}
+.z-stat{
+  flex:1;background:rgba(255,255,255,0.03);border:1px solid var(--border);
+  border-radius:12px;padding:10px 8px;text-align:center;
+}
+.z-stat-n{font-size:17px;font-weight:900}
+.z-stat-l{font-size:9px;color:var(--muted);font-weight:700;margin-top:2px;letter-spacing:0.03em}
+
+.zcard-div{height:1px;background:var(--border);margin:0 20px}
+.zcard-qr{
+  padding:14px 20px 18px;
+  display:flex;align-items:center;gap:14px;
+  position:relative;z-index:1;
+}
+.qr-frame{
+  background:white;border-radius:12px;padding:6px;
+  width:72px;height:72px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  box-shadow:0 4px 14px rgba(0,0,0,0.28),0 0 0 1px rgba(255,255,255,0.08);
+}
+.qr-frame canvas,.qr-frame img{width:60px!important;height:60px!important}
+.qr-lbl{font-size:11px;font-weight:800;margin-bottom:3px}
+.qr-sub{font-size:10px;color:var(--muted);font-weight:500;line-height:1.5}
+.qr-link{font-size:10px;font-weight:700;margin-top:5px;color:var(--gold2);font-family:monospace;letter-spacing:0.04em}
+
+/* Share */
+.share-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+.sbtn{
+  padding:12px 10px;border-radius:14px;
+  background:var(--bg2);border:1px solid var(--border2);
+  cursor:pointer;transition:transform 0.12s,border-color 0.15s;
+  display:flex;flex-direction:column;align-items:center;gap:7px;
+}
+.sbtn:active{transform:scale(0.95);border-color:rgba(29,185,84,0.32)}
+.sbtn-ico{
+  width:42px;height:42px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+}
+.sbtn-lbl{font-size:11px;font-weight:800;color:var(--text)}
+
+.link-box{
+  width:100%;
+  background:var(--bg2);border:1px solid rgba(245,158,11,0.16);
+  border-radius:14px;padding:13px 14px;position:relative;overflow:hidden;
+}
+.link-box::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(245,158,11,0.28),transparent);
+}
+.link-lbl{font-size:9px;font-weight:800;letter-spacing:0.10em;color:var(--muted2);text-transform:uppercase;margin-bottom:6px}
+.link-url{font-family:'Courier New',monospace;font-size:12px;color:var(--gold2);font-weight:700;word-break:break-all;line-height:1.5}
+.link-hint{font-size:10px;color:var(--muted2);font-weight:500;margin-top:6px;line-height:1.5}
+
+/* ── MODAL ── */
+.moverlay{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,0.78);backdrop-filter:blur(10px);
+  align-items:flex-end;justify-content:center;
+}
+.moverlay.open{display:flex}
+.msheet{
+  width:100%;max-width:430px;
+  background:linear-gradient(160deg,var(--bg2),var(--bg));
+  border:1px solid var(--border2);
+  border-radius:26px 26px 0 0;
+  padding:22px 20px calc(28px + var(--sb));
+  animation:sheetUp 0.3s cubic-bezier(0.22,1,0.36,1);
+}
+@keyframes sheetUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+.mhandle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:0 auto 20px}
+.mtitle{font-size:17px;font-weight:900;margin-bottom:5px}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:110px;left:50%;transform:translateX(-50%);
+  background:var(--bg3);border:1px solid var(--border2);
+  padding:10px 20px;border-radius:30px;
+  font-size:13px;font-weight:700;white-space:nowrap;
+  z-index:500;opacity:0;pointer-events:none;
+  transition:opacity 0.25s;
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);
+}
+.toast.show{opacity:1}
+
+/* Loading screen */
+.loading-screen{
+  position:fixed;inset:0;z-index:999;
+  background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:20px;
+}
+.loading-logo{
+  width:80px;height:80px;border-radius:22px;
+  background:linear-gradient(145deg,#0b1e0f,#071525);
+  border:1px solid rgba(29,185,84,0.20);
+  display:flex;align-items:center;justify-content:center;
+}
+.loading-dots{display:flex;gap:6px}
+.loading-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--green);opacity:0.3;
+  animation:ldot 1.2s infinite;
+}
+.loading-dot:nth-child(2){animation-delay:0.2s}
+.loading-dot:nth-child(3){animation-delay:0.4s}
+@keyframes ldot{0%,100%{opacity:0.3}50%{opacity:1}}
+
+/* color helpers */
+.cg2{color:var(--green)}
+.cb2{color:var(--blue3)}
+.co2{color:var(--gold2)}
+.cr2{color:var(--red2)}
+.cp2{color:#c4b5fd}
+.cm2{color:var(--muted)}
+
+/* empty state */
+.empty-state{
+  text-align:center;padding:48px 24px;
+  color:var(--muted2);font-size:13px;font-weight:600;
+}
+.empty-state svg{margin-bottom:12px;opacity:0.3}
+
+/* popust full list */
+.pl-item{
+  margin:0 12px 8px;background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--r2);padding:14px 16px;
+  display:flex;gap:12px;align-items:center;cursor:pointer;
+  position:relative;overflow:hidden;transition:transform 0.12s;
+}
+.pl-item::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(251,191,36,0.22),transparent);
+}
+.pl-item:active{transform:scale(0.98)}
+.pl-ico{
+  width:46px;height:46px;border-radius:13px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.pl-pct{
+  font-size:11px;font-weight:900;
+  background:linear-gradient(135deg,var(--gold2),var(--gold3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.pl-name{font-size:14px;font-weight:800;margin:2px 0;color:var(--text)}
+.pl-desc{font-size:11px;color:var(--muted);font-weight:500}
+.pl-tag{
+  font-size:9px;font-weight:800;padding:4px 8px;border-radius:20px;
+  background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.16);
+  color:var(--gold3);text-align:center;flex-shrink:0;line-height:1.4;
+}
+
+/* page headings */
+.page-h{padding:14px 16px 0;font-size:19px;font-weight:900;letter-spacing:-0.03em}
+.page-s{padding:2px 16px 12px;font-size:12px;color:var(--muted);font-weight:500;line-height:1.65}
+
+/* scroll hint */
+.scroll-hint{
+  padding:6px 12px 0;
+  font-size:10px;color:var(--muted2);font-weight:600;
+  display:flex;align-items:center;gap:4px;
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════
+     LOADING SCREEN
+════════════════════════════════════ -->
+<div id="loading-screen" class="loading-screen">
+  <div class="loading-logo">
+    <svg width="44" height="44" viewBox="0 0 48 48" fill="none">
+      <path d="M24 4L6 16V44H42V16L24 4Z" stroke="url(#ll1)" stroke-width="2" fill="none"/>
+      <path d="M18 44V30H30V44" stroke="url(#ll1)" stroke-width="1.8" fill="none"/>
+      <circle cx="24" cy="18" r="4" fill="#fbbf24"/>
+      <defs>
+        <linearGradient id="ll1" x1="6" y1="4" x2="42" y2="44" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#1db954"/><stop offset="1" stop-color="#3b82f6"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+  <div class="loading-dots">
+    <div class="loading-dot"></div>
+    <div class="loading-dot"></div>
+    <div class="loading-dot"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     ONBOARD — 3 KORAKA
+════════════════════════════════════ -->
+<div id="screen-onboard" class="screen">
+<div class="onb-wrap">
+
+  <div class="onb-steps">
+    <div class="step-dot active" id="dot-0"></div>
+    <div class="step-dot" id="dot-1"></div>
+    <div class="step-dot" id="dot-2"></div>
+  </div>
+
+  <div class="onb-slides" id="onb-slides">
+
+    <!-- Slide 0: Dobrodošlica -->
+    <div class="onb-slide" id="slide-0">
+      <div class="vbp-logo">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+          <path d="M24 4L6 16V44H42V16L24 4Z" stroke="url(#og1)" stroke-width="2" fill="none"/>
+          <path d="M18 44V30H30V44" stroke="url(#og1)" stroke-width="1.8" fill="none"/>
+          <circle cx="24" cy="18" r="5" fill="url(#og2)" opacity="0.9"/>
+          <defs>
+            <linearGradient id="og1" x1="6" y1="4" x2="42" y2="44" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#1db954"/><stop offset="1" stop-color="#3b82f6"/>
+            </linearGradient>
+            <linearGradient id="og2" x1="19" y1="13" x2="29" y2="23" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#fbbf24"/><stop offset="1" stop-color="#fef3c7"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <h1 class="onb-h1"><span class="brand">VBPuls</span></h1>
+      <p class="onb-desc">Digitalni puls Vrnjačke Banje — vesti, događaji, popusti i komunalne informacije uvek u vašem džepu.</p>
+      <div class="feat-list">
+        <div class="feat-row">
+          <div class="feat-ico" style="background:rgba(29,185,84,0.10)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="#1db954" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+          <div><div class="feat-t">Svakodnevne vesti</div><div class="feat-s">Komunalno, grad, opština — sve na jednom mestu</div></div>
+        </div>
+        <div class="feat-row">
+          <div class="feat-ico" style="background:rgba(245,158,11,0.10)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="#f59e0b" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          </div>
+          <div><div class="feat-t">Popusti za meštane</div><div class="feat-s">Pokažite znacku — ostvarite popust odmah</div></div>
+        </div>
+        <div class="feat-row">
+          <div class="feat-ico" style="background:rgba(59,130,246,0.10)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="#3b82f6" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          </div>
+          <div><div class="feat-t">Vaša digitalna znacka</div><div class="feat-s">Podelite grad s prijateljima — link ili QR</div></div>
+        </div>
+        <div class="feat-row">
+          <div class="feat-ico" style="background:rgba(239,68,68,0.10)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#ef4444" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          </div>
+          <div><div class="feat-t">Hitna obaveštenja</div><div class="feat-s">Nestanak struje, vode — odmah dobijate obaveštenje</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 1: Registracija -->
+    <div class="onb-slide" id="slide-1">
+      <div style="width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg,rgba(29,185,84,0.12),rgba(59,130,246,0.08));border:1px solid rgba(29,185,84,0.22);display:flex;align-items:center;justify-content:center;margin-bottom:20px">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="url(#rg)" stroke-width="1.8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="url(#rg)" stroke-width="1.8" stroke-linecap="round"/><defs><linearGradient id="rg" x1="4" y1="4" x2="20" y2="20" gradientUnits="userSpaceOnUse"><stop stop-color="#1db954"/><stop offset="1" stop-color="#3b82f6"/></linearGradient></defs></svg>
+      </div>
+      <h1 class="onb-h1" style="font-size:22px;margin-bottom:8px">Vaš profil</h1>
+      <p class="onb-desc" style="margin-bottom:22px">Ovo se unosi <strong style="color:var(--text)">samo jednom</strong>. Aplikacija vas pamti zauvek.</p>
+      <div style="width:100%">
+        <label class="f-label">Ime i prezime</label>
+        <input class="f-input" id="inp-ime" type="text" placeholder="npr. Marija Petrović" autocomplete="name" autocorrect="off">
+        <label class="f-label">Naselje</label>
+        <select class="f-input f-select" id="inp-kvart">
+          <option value="Vrnjačka Banja">Vrnjačka Banja</option>
+          <option value="Vraneši">Vraneši</option>
+          <option value="Vrnjci">Vrnjci</option>
+          <option value="Vukušica">Vukušica</option>
+          <option value="Goč">Goč</option>
+          <option value="Gračac">Gračac</option>
+          <option value="Lipova">Lipova</option>
+          <option value="Novo Selo">Novo Selo</option>
+          <option value="Otroci">Otroci</option>
+          <option value="Podunavci">Podunavci</option>
+          <option value="Rsavci">Rsavci</option>
+          <option value="Ruđinci">Ruđinci</option>
+          <option value="Stanišinci">Stanišinci</option>
+          <option value="Štulac">Štulac</option>
+        </select>
+        <label class="f-label">Email adresa</label>
+        <input class="f-input" id="inp-mail" type="email" placeholder="vas@email.com" autocomplete="email" inputmode="email">
+        <p class="f-hint">Vaš email koristimo isključivo za obaveštenja vezana za Vrnjačku Banju — nikad ne delimo podatke sa trećim licima niti šaljemo komercijalne poruke.</p>
+        <div class="consent-row">
+          <input type="checkbox" class="consent-cb" id="inp-consent">
+          <label for="inp-consent" class="consent-txt">
+            Saglasan/na sam da se moj email adresa koristi <strong>isključivo za prijem informacija vezanih za Vrnjačku Banju</strong> — vesti, hitna obaveštenja, događaje i komunalne informacije. Email se ne prosleđuje trećim licima niti se koristi u druge svrhe. Saglasnost mogu povući u bilo kom trenutku.
+          </label>
+        </div>
+        <div class="f-err" id="form-err"></div>
+      </div>
+    </div>
+
+    <!-- Slide 2: Instalacija -->
+    <div class="onb-slide" id="slide-2">
+      <div class="success-ico">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="url(#sg)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="sg" x1="4" y1="6" x2="20" y2="18" gradientUnits="userSpaceOnUse"><stop stop-color="#1db954"/><stop offset="1" stop-color="#3b82f6"/></linearGradient></defs></svg>
+      </div>
+      <h1 class="onb-h1" style="font-size:22px;margin-bottom:8px">Dobrodošli, <span id="onb-name-greet" class="brand">prijatelju</span>!</h1>
+      <p class="onb-desc" style="margin-bottom:20px">Instalirajte VBPuls na telefon za brži pristup.</p>
+      <div class="install-list">
+        <div class="install-row">
+          <div class="install-num">1</div>
+          <div><div class="install-t">Tap na "Podeli" ili ⋮ u browseru</div><div class="install-s">Safari, Chrome ili Firefox</div></div>
+        </div>
+        <div class="install-row">
+          <div class="install-num">2</div>
+          <div><div class="install-t">Izaberite "Dodaj na početni ekran"</div><div class="install-s">"Add to Home Screen" na engleskom</div></div>
+        </div>
+        <div class="install-row">
+          <div class="install-num">3</div>
+          <div><div class="install-t">Otvorite VBPuls ikonicu</div><div class="install-s">Aplikacija pamti sve — nema ponovne prijave</div></div>
+        </div>
+      </div>
+      <div style="width:100%;padding:12px 14px;border-radius:13px;background:rgba(29,185,84,0.06);border:1px solid rgba(29,185,84,0.15);margin-bottom:14px">
+        <div style="font-size:11px;font-weight:600;color:var(--green3);line-height:1.7">
+          ✓ Profil sačuvan lokalno na vašem telefonu<br>
+          ✓ Radi i bez interneta — vesti se osvežavaju online<br>
+          ✓ Nema lozinke — samo otvorite i koristite
+        </div>
+      </div>
+
+      <div style="width:100%;padding:14px;border-radius:14px;background:rgba(34,158,217,0.07);border:1px solid rgba(34,158,217,0.20);display:flex;align-items:center;gap:12px">
+        <div style="width:38px;height:38px;border-radius:11px;background:rgba(34,158,217,0.14);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21.5 4.5L2.5 11.8c-1.3.5-1.3 1.2-.2 1.6l4.9 1.5 1.9 5.8c.2.6.5.9.9.9.4 0 .6-.2.9-.5l2.3-2.2 4.7 3.5c.9.5 1.5.2 1.7-.8l3.2-15c.3-1.2-.5-1.8-1.3-1.1z" stroke="#29a9eb" stroke-width="1.6" stroke-linejoin="round" fill="rgba(41,169,235,0.10)"/></svg>
+        </div>
+        <div style="flex:1;text-align:left">
+          <div style="font-size:12px;font-weight:800;color:var(--text)">Primajte hitna obaveštenja</div>
+          <div style="font-size:10px;color:var(--muted);font-weight:500;margin-top:1px">Isključenja struje i vode — direktno na Telegram</div>
+        </div>
+        <button class="btn-g" id="btn-telegram-connect" onclick="connectTelegram()" style="width:auto;padding:9px 14px;margin:0;font-size:11px;border-color:rgba(34,158,217,0.3);color:#7cc6f0;flex-shrink:0">
+          Poveži
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="onb-nav">
+    <button class="btn-p" id="onb-btn" onclick="onbNext()">
+      <span id="onb-btn-lbl">Počnimo →</span>
+    </button>
+    <button class="btn-g" id="onb-skip" onclick="launchApp()" style="display:none">
+      Preskočite instalaciju — ući ću odmah
+    </button>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════
+     MAIN APP
+════════════════════════════════════ -->
+<div id="screen-app" class="screen">
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-l">
+    <div class="tb-logo">
+      <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
+        <path d="M24 4L6 16V44H42V16L24 4Z" stroke="url(#tg1)" stroke-width="2.5" fill="none"/>
+        <path d="M18 44V30H30V44" stroke="url(#tg1)" stroke-width="2" fill="none"/>
+        <circle cx="24" cy="18" r="4" fill="#fbbf24"/>
+        <defs><linearGradient id="tg1" x1="6" y1="4" x2="42" y2="44" gradientUnits="userSpaceOnUse"><stop stop-color="#1db954"/><stop offset="1" stop-color="#3b82f6"/></linearGradient></defs>
+      </svg>
+    </div>
+    <div>
+      <div class="tb-title">VBPuls<span class="pulse-dot"></span></div>
+      <div class="tb-sub">Vrnjačka Banja</div>
+    </div>
+  </div>
+  <div class="notif-btn" onclick="showToast('📬 Nema novih obaveštenja')" id="notif-btn">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="var(--text)" stroke-width="1.8" stroke-linecap="round"/><path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="var(--text)" stroke-width="1.8" stroke-linecap="round"/></svg>
+  </div>
+</div>
+
+<!-- PAGE: HOME -->
+<div id="page-home" class="page active">
+  <!-- Alert strip (skriva se ako nema hitnih vesti) -->
+  <div id="alert-zone" style="margin-top:12px;display:none"></div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-line"></div><div class="hero-orb1"></div><div class="hero-orb2"></div>
+    <div class="hero-date">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="5" fill="#1db954"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="#1db954" stroke-width="2" stroke-linecap="round"/></svg>
+      <span id="hero-date-txt">Vrnjačka Banja</span>
+    </div>
+    <div class="hero-h">Dobar dan,<br><span id="hero-ime">Meštanine</span>!</div>
+    <div class="hero-sub" id="hero-sub">Učitavamo vesti i događaje za vas...</div>
+    <div class="chips">
+      <div class="chip cg" id="hero-chip-weather">☀️ Vrnjačka Banja</div>
+      <div class="chip co" id="hero-chip-discounts">⭐ Popusti aktiv.</div>
+    </div>
+  </div>
+
+  <!-- Vesti -->
+  <div class="slbl">
+    <div class="slbl-l">
+      <div class="slbl-ico" style="background:rgba(29,185,84,0.09)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="#1db954" stroke-width="2" stroke-linecap="round"/></svg></div>
+      <div class="slbl-t">Najnovije vesti</div>
+    </div>
+    <div class="slbl-more" onclick="goPage('page-vesti')">Sve →</div>
+  </div>
+  <div class="nscroll" id="home-news-scroll">
+    <!-- Skeleton loaders -->
+    <div class="nc-skeleton shimmer" style="height:160px;min-width:216px"></div>
+    <div class="nc-skeleton shimmer" style="height:160px;min-width:216px"></div>
+    <div class="nc-skeleton shimmer" style="height:160px;min-width:216px"></div>
+  </div>
+
+  <!-- Događaji -->
+  <div class="slbl">
+    <div class="slbl-l">
+      <div class="slbl-ico" style="background:rgba(59,130,246,0.09)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="3" stroke="#3b82f6" stroke-width="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"/></svg></div>
+      <div class="slbl-t">Nadolazeći događaji</div>
+    </div>
+    <div class="slbl-more" onclick="goPage('page-dogadjaji')">Svi →</div>
+  </div>
+  <div id="home-events">
+    <div style="padding:0 12px"><div class="shimmer" style="height:72px;border-radius:18px;margin-bottom:8px"></div></div>
+  </div>
+
+  <!-- Popusti -->
+  <div class="slbl">
+    <div class="slbl-l">
+      <div class="slbl-ico" style="background:rgba(245,158,11,0.09)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="#f59e0b" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
+      <div class="slbl-t">Popusti za meštane</div>
+    </div>
+    <div class="slbl-more" onclick="goPage('page-popusti')">Svi →</div>
+  </div>
+  <div class="pscroll" id="home-popusti-scroll">
+    <div class="nc-skeleton shimmer" style="height:170px;min-width:148px;border-radius:22px"></div>
+    <div class="nc-skeleton shimmer" style="height:170px;min-width:148px;border-radius:22px"></div>
+    <div class="nc-skeleton shimmer" style="height:170px;min-width:148px;border-radius:22px"></div>
+  </div>
+
+  <!-- Komunalni servisi (statični) -->
+  <div class="slbl">
+    <div class="slbl-l">
+      <div class="slbl-ico" style="background:rgba(59,130,246,0.09)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" stroke="#3b82f6" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+      <div class="slbl-t">Komunalni servisi</div>
+    </div>
+  </div>
+  <div class="kgrid">
+    <div class="kc" onclick="call('036/611-122','Komunalno JKP')">
+      <div class="kc-ico" style="background:rgba(59,130,246,0.09)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2C6 10 6 14 12 18c6-4 6-8 0-16z" stroke="#3b82f6" stroke-width="1.8" fill="rgba(59,130,246,0.08)"/></svg></div>
+      <div class="kc-t">Vodosnabdevanje</div><div class="kc-s">036/611-122</div>
+    </div>
+    <div class="kc" onclick="call('0800/100-021','EPS')">
+      <div class="kc-ico" style="background:rgba(245,158,11,0.09)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#f59e0b" stroke-width="1.8" fill="rgba(245,158,11,0.07)" stroke-linejoin="round"/></svg></div>
+      <div class="kc-t">Električna energija</div><div class="kc-s">0800/100-021</div>
+    </div>
+    <div class="kc" onclick="call('036/612-345','Čistoća VB')">
+      <div class="kc-ico" style="background:rgba(29,185,84,0.09)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><polyline points="3 6 5 6 21 6" stroke="#1db954" stroke-width="1.8" stroke-linecap="round"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="#1db954" stroke-width="1.8" fill="rgba(29,185,84,0.06)"/><path d="M10 11v6M14 11v6" stroke="#1db954" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <div class="kc-t">Odvoz smeća</div><div class="kc-s">036/612-345</div>
+    </div>
+    <div class="kc" onclick="showToast('Opština: Pon–Pet 07:30–15:30')">
+      <div class="kc-ico" style="background:rgba(139,92,246,0.09)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 21h18M12 3L3 10h18L12 3z" stroke="#8b5cf6" stroke-width="1.8" stroke-linejoin="round" fill="rgba(139,92,246,0.07)"/><rect x="7" y="14" width="3" height="7" stroke="#8b5cf6" stroke-width="1.5"/><rect x="14" y="14" width="3" height="7" stroke="#8b5cf6" stroke-width="1.5"/></svg></div>
+      <div class="kc-t">Opština VB</div><div class="kc-s">Pon–Pet 07:30–15:30</div>
+    </div>
+  </div>
+  <div style="height:8px"></div>
+</div>
+
+<!-- PAGE: VESTI -->
+<div id="page-vesti" class="page">
+  <div class="page-h">Vesti i obaveštenja</div>
+  <div class="ftabs" id="news-tabs">
+    <button class="ftab active" onclick="filterNews(this,'sve')">Sve</button>
+    <button class="ftab" onclick="filterNews(this,'vest')">Grad</button>
+    <button class="ftab" onclick="filterNews(this,'komunalno')">Komunalno</button>
+    <button class="ftab" onclick="filterNews(this,'hitno')">⚡ Hitno</button>
+    <button class="ftab" onclick="filterNews(this,'opstina')">Opština</button>
+  </div>
+  <div style="height:10px"></div>
+  <div id="news-list">
+    <div style="padding:0 12px"><div class="shimmer" style="height:88px;border-radius:18px;margin-bottom:8px"></div><div class="shimmer" style="height:88px;border-radius:18px;margin-bottom:8px"></div><div class="shimmer" style="height:88px;border-radius:18px"></div></div>
+  </div>
+</div>
+
+<!-- PAGE: DOGAĐAJI -->
+<div id="page-dogadjaji" class="page">
+  <div class="page-h">Događaji u gradu</div>
+  <div style="height:6px"></div>
+  <div id="events-list">
+    <div style="padding:0 12px"><div class="shimmer" style="height:80px;border-radius:18px;margin-bottom:8px"></div></div>
+  </div>
+  <div class="mapa-box">
+    <div class="mapa-grid"></div>
+    <svg width="38" height="38" viewBox="0 0 24 24" fill="none" style="position:relative;z-index:1"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z" stroke="#3b82f6" stroke-width="1.8" fill="rgba(59,130,246,0.08)"/><circle cx="12" cy="10" r="3" stroke="#3b82f6" stroke-width="1.8"/></svg>
+    <div style="font-size:12px;font-weight:700;color:var(--muted);position:relative;z-index:1">Mapa događaja — uskoro</div>
+  </div>
+</div>
+
+<!-- PAGE: POPUSTI -->
+<div id="page-popusti" class="page">
+  <div class="page-h">Popusti za meštane</div>
+  <div class="page-s">Pokažite VBPuls Znacku na kasi i ostvarite popust. Važe za stalne stanovnike Vrnjačke Banje.</div>
+  <div id="popust-badge" style="margin:0 12px 14px;padding:12px 14px;border-radius:14px;background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.16)">
+    <div style="font-size:12px;font-weight:700;color:var(--gold3)">Učitavamo popuste...</div>
+  </div>
+  <div id="popusti-lista">
+    <div style="padding:0 12px"><div class="shimmer" style="height:72px;border-radius:18px;margin-bottom:8px"></div><div class="shimmer" style="height:72px;border-radius:18px;margin-bottom:8px"></div></div>
+  </div>
+</div>
+
+<!-- PAGE: ZNACKA -->
+<div id="page-znacka" class="page">
+  <div class="page-h">Moja VBPuls Znacka</div>
+  <div class="page-s">Digitalna identifikacija meštanina Vrnjačke Banje</div>
+  <div class="znacka-outer">
+
+    <div class="znacka-card">
+      <div class="zcard-top"></div>
+      <div class="zcard-orb"></div><div class="zcard-orb2"></div>
+
+      <div class="zcard-head">
+        <div class="zcard-city">
+          <div class="zcard-dot"></div>
+          <div class="zcard-city-lbl">VBPuls · Vrnjačka Banja</div>
+        </div>
+        <div class="zcard-yr" id="z-yr">2026</div>
+      </div>
+
+      <div class="zcard-body">
+        <div class="z-ava-ring">
+          <div class="z-ava-in">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="url(#zg)" stroke-width="1.8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="url(#zg)" stroke-width="1.8" stroke-linecap="round"/><defs><linearGradient id="zg" x1="4" y1="4" x2="20" y2="20" gradientUnits="userSpaceOnUse"><stop stop-color="#1db954"/><stop offset="1" stop-color="#3b82f6"/></linearGradient></defs></svg>
+          </div>
+        </div>
+
+        <div class="z-name" id="z-name">—</div>
+        <div class="z-status"><div class="z-sdot"></div>Verifikovani mešanin · <span id="z-kvart">—</span></div>
+
+        <div class="z-mail-row">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="#1db954" stroke-width="1.8"/><path d="M22 6l-10 7L2 6" stroke="#1db954" stroke-width="1.8"/></svg>
+          <div>
+            <div class="z-mail-lbl">Email</div>
+            <div class="z-mail-val" id="z-mail">—</div>
+          </div>
+        </div>
+
+        <div class="z-id-lbl">Jedinstveni broj</div>
+        <div class="z-id" id="z-id">VBP-0000-0000</div>
+
+        <div class="z-stats">
+          <div class="z-stat">
+            <div class="z-stat-n" style="color:var(--gold2)" id="z-stat-popusti">—</div>
+            <div class="z-stat-l">Popusta</div>
+          </div>
+          <div class="z-stat">
+            <div class="z-stat-n" style="color:var(--green)" id="z-stat-ref">0</div>
+            <div class="z-stat-l">Pozvanih</div>
+          </div>
+          <div class="z-stat">
+            <div class="z-stat-n" style="color:var(--blue3)" id="z-stat-dana">1</div>
+            <div class="z-stat-l">Dana aktivan</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="zcard-div"></div>
+
+      <div class="zcard-qr">
+        <div class="qr-frame" id="mini-qr"></div>
+        <div>
+          <div class="qr-lbl">Pozovi prijatelja</div>
+          <div class="qr-sub">Neka skenira QR — odmah otvara VBPuls i registruje se.</div>
+          <div class="qr-link" id="z-link-mini">vbpuls.rs/?ref=...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Share dugmad -->
+    <div class="share-grid">
+      <div class="sbtn" onclick="doShare('viber')">
+        <div class="sbtn-ico" style="background:rgba(124,58,237,0.10)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="5" stroke="#7c3aed" stroke-width="1.8" fill="rgba(124,58,237,0.07)"/><path d="M8 10.5s.5 1.5 2 2.5 3 1.5 3 1.5" stroke="#7c3aed" stroke-width="1.8" stroke-linecap="round"/><circle cx="16" cy="8" r="2" fill="#7c3aed"/></svg>
+        </div>
+        <div class="sbtn-lbl">Viber</div>
+      </div>
+      <div class="sbtn" onclick="doShare('whatsapp')">
+        <div class="sbtn-ico" style="background:rgba(29,185,84,0.10)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M21 11.5A9 9 0 0 1 12 20a8.9 8.9 0 0 1-4.1-1L3 20l1.1-4.7A8.9 8.9 0 0 1 3 11.5 9 9 0 1 1 21 11.5z" stroke="#1db954" stroke-width="1.8" fill="rgba(29,185,84,0.07)"/><path d="M9 10s0 1 1.5 2.5S13 14 13 14" stroke="#1db954" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <div class="sbtn-lbl">WhatsApp</div>
+      </div>
+      <div class="sbtn" onclick="doShare('copy')">
+        <div class="sbtn-ico" style="background:rgba(245,158,11,0.10)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <div class="sbtn-lbl">Kopiraj link</div>
+      </div>
+      <div class="sbtn" onclick="doShare('native')">
+        <div class="sbtn-ico" style="background:rgba(59,130,246,0.10)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" stroke="#3b82f6" stroke-width="1.8" stroke-linecap="round"/><polyline points="16 6 12 2 8 6" stroke="#3b82f6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="2" x2="12" y2="15" stroke="#3b82f6" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <div class="sbtn-lbl">Podeli</div>
+      </div>
+    </div>
+
+    <div class="link-box">
+      <div class="link-lbl">Vaš pozivni link</div>
+      <div class="link-url" id="share-link-display">vbpuls.rs/?ref=...</div>
+      <div class="link-hint">Prijatelj otvara link → registruje se → postaje mešanin VBPulsa</div>
+    </div>
+
+    <div style="width:100%;padding:14px;border-radius:14px;background:rgba(34,158,217,0.07);border:1px solid rgba(34,158,217,0.20);display:flex;align-items:center;gap:12px" id="telegram-box">
+      <div style="width:38px;height:38px;border-radius:11px;background:rgba(34,158,217,0.14);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21.5 4.5L2.5 11.8c-1.3.5-1.3 1.2-.2 1.6l4.9 1.5 1.9 5.8c.2.6.5.9.9.9.4 0 .6-.2.9-.5l2.3-2.2 4.7 3.5c.9.5 1.5.2 1.7-.8l3.2-15c.3-1.2-.5-1.8-1.3-1.1z" stroke="#29a9eb" stroke-width="1.6" stroke-linejoin="round" fill="rgba(41,169,235,0.10)"/></svg>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:800;color:var(--text)">Hitna obaveštenja na Telegram</div>
+        <div style="font-size:10px;color:var(--muted);font-weight:500;margin-top:1px" id="telegram-status">Niste povezani</div>
+      </div>
+      <button class="btn-g" id="btn-telegram-connect-2" onclick="connectTelegram()" style="width:auto;padding:9px 14px;margin:0;font-size:11px;border-color:rgba(34,158,217,0.3);color:#7cc6f0;flex-shrink:0">
+        Poveži
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bnav">
+  <div class="ni active" onclick="goPage('page-home')" id="nav-home">
+    <div class="ni-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 4l9 8"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-5h4v5h4a1 1 0 0 0 1-1V10"/></svg></div>
+    <div class="ni-lbl">Početna</div>
+  </div>
+  <div class="ni" onclick="goPage('page-vesti')" id="nav-vesti">
+    <div class="ni-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
+    <div class="ni-lbl">Vesti</div>
+  </div>
+  <div class="ni" onclick="goPage('page-dogadjaji')" id="nav-dogadjaji">
+    <div class="ni-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+    <div class="ni-lbl">Događaji</div>
+  </div>
+  <div class="ni" onclick="goPage('page-popusti')" id="nav-popusti">
+    <div class="ni-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+    <div class="ni-lbl">Popusti</div>
+  </div>
+  <div class="ni" onclick="goPage('page-znacka')" id="nav-znacka">
+    <div class="ni-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><path d="M17 13l1.5 1.5L21 12"/></svg></div>
+    <div class="ni-lbl">Znacka</div>
+  </div>
+</div>
+</div>
+
+<!-- ════ MODAL ════ -->
+<div class="moverlay" id="modal-main">
+  <div class="msheet">
+    <div class="mhandle"></div>
+    <div id="modal-content"></div>
+    <div style="height:14px"></div>
+    <button class="btn-g" onclick="closeModal()" style="margin-top:0;border-color:var(--border2)">Zatvori</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ════════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════════ -->
+<script>
+/* ─── KONFIGURACIJA ───────────────────────────────── */
+const CFG = {
+  SUPABASE_URL:  'VASA_SUPABASE_URL',   // Zameniti pravim URL-om
+  SUPABASE_KEY:  'VASA_SUPABASE_ANON_KEY', // Zameniti pravim ključem
+  APP_URL:       'https://vbpuls.rs',
+  APP_VERSION:   '1.0.0',
+};
+
+/* ─── SUPABASE INIT ───────────────────────────────── */
+let sb = null;
+function initSupabase(){
+  if(CFG.SUPABASE_URL === 'VASA_SUPABASE_URL') return; // Demo mod
+  try{
+    sb = supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY, {auth:{persistSession:false}});
+  }catch(e){ console.warn('Supabase nije inicijalizovan:', e.message); }
+}
+
+/* ─── STATE ───────────────────────────────────────── */
+let user = {
+  name: '', kvart: '', mail: '', id: '', ref: '',
+  shareUrl: '', registeredAt: null,
+};
+let currentNewsFilter = 'sve';
+let newsData = [];
+let eventsData = [];
+let discountsData = [];
+let onbStep = 0;
+
+/* ─── HELPERS ─────────────────────────────────────── */
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmtDate = d => {
+  if(!d) return '';
+  const dt = new Date(d);
+  return dt.toLocaleDateString('sr-Latn-RS',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+};
+const fmtDateShort = d => {
+  if(!d) return {day:'?',mon:'?'};
+  const dt = new Date(d);
+  return {
+    day: dt.getDate(),
+    mon: dt.toLocaleDateString('sr-Latn-RS',{month:'short'}).replace('.',''),
+  };
+};
+const catColor = cat => ({
+  'hitno':'#fca5a5','vest':'#a7f3c2','komunalno':'#fed7aa',
+  'opstina':'#c4b5fd','saobracaj':'#fde68a','dogadjaj':'#93c5fd',
+}[cat]||'#a7f3c2');
+
+const catIcon = cat => ({
+  'hitno': `<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#ef4444" stroke-width="1.8" fill="rgba(239,68,68,0.08)" stroke-linejoin="round"/></svg>`,
+  'vest':  `<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L6 10h4v4l-4 2 4 1v5h4v-5l4-1-4-2v-4h4L12 2z" stroke="#1db954" stroke-width="1.8" fill="rgba(29,185,84,0.08)"/></svg>`,
+  'komunalno': `<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2C6 10 6 14 12 18c6-4 6-8 0-16z" stroke="#3b82f6" stroke-width="1.8" fill="rgba(59,130,246,0.08)"/></svg>`,
+  'opstina': `<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 21h18M12 3L3 10h18L12 3z" stroke="#8b5cf6" stroke-width="1.8" stroke-linejoin="round" fill="rgba(139,92,246,0.07)"/><rect x="7" y="14" width="3" height="7" stroke="#8b5cf6" stroke-width="1.5"/><rect x="14" y="14" width="3" height="7" stroke="#8b5cf6" stroke-width="1.5"/></svg>`,
+  'saobracaj': `<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="10" rx="2" stroke="#f59e0b" stroke-width="1.8" fill="rgba(245,158,11,0.07)"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#f59e0b" stroke-width="1.8"/></svg>`,
+}[cat]||`<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="#1db954" stroke-width="2" stroke-linecap="round"/></svg>`);
+
+const catBg = cat => ({
+  'hitno':'rgba(239,68,68,0.09)','vest':'rgba(29,185,84,0.09)',
+  'komunalno':'rgba(59,130,246,0.09)','opstina':'rgba(139,92,246,0.09)',
+  'saobracaj':'rgba(245,158,11,0.09)',
+}[cat]||'rgba(29,185,84,0.09)');
+
+/* ─── ONBOARD ─────────────────────────────────────── */
+const onbLabels = ['Počnimo →','Napravi profil →','Uđi u VBPuls →'];
+
+function onbNext(){
+  if(onbStep === 0){ setOnbStep(1); return; }
+  if(onbStep === 1){
+    const ime    = document.getElementById('inp-ime').value.trim();
+    const mail   = document.getElementById('inp-mail').value.trim();
+    const consent= document.getElementById('inp-consent').checked;
+    if(!ime){ setErr('Unesite vaše ime i prezime.'); return; }
+    if(!mail || !mail.includes('@') || !mail.includes('.')){
+      setErr('Unesite ispravnu email adresu.'); return;
+    }
+    if(!consent){ setErr('Potrebna je saglasnost za korišćenje email adrese.'); return; }
+    setErr('');
+    user.name  = ime;
+    user.kvart = document.getElementById('inp-kvart').value.trim() || 'Vrnjačka Banja';
+    user.mail  = mail;
+    user.id    = 'VBP-' + new Date().getFullYear() + '-' + Math.floor(1000+Math.random()*8999);
+    user.shareUrl = CFG.APP_URL + '/?ref=' + user.id;
+    user.registeredAt = Date.now();
+    // Sačuvaj lokalno
+    saveUser();
+    // Registruj u Supabase (async, ne blokira)
+    registerInDb();
+    // Animuj slide 2
+    document.getElementById('onb-name-greet').textContent = ime.split(' ')[0];
+    setOnbStep(2);
+    return;
+  }
+  launchApp();
+}
+
+function setErr(msg){ document.getElementById('form-err').textContent = msg; }
+
+function setOnbStep(n){
+  onbStep = n;
+  document.querySelectorAll('.step-dot').forEach((d,i)=>d.classList.toggle('active',i===n));
+  document.querySelectorAll('.onb-slide').forEach((s,i)=>{
+    s.style.transform = `translateX(${(i-n)*100}%)`;
+  });
+  document.getElementById('onb-btn-lbl').textContent = onbLabels[n];
+  document.getElementById('onb-skip').style.display = n===2 ? 'flex' : 'none';
+}
+
+/* Inicijalizuj pozicije slide-ova */
+(function initSlides(){
+  document.querySelectorAll('.onb-slide').forEach((s,i)=>{
+    s.style.position = 'absolute';
+    s.style.top = s.style.left = s.style.right = '0';
+    s.style.transition = 'transform 0.4s cubic-bezier(0.22,1,0.36,1)';
+    s.style.transform = `translateX(${i*100}%)`;
+  });
+})();
+
+/* ─── USER STORAGE ────────────────────────────────── */
+function saveUser(){
+  try{
+    localStorage.setItem('vbp_user', JSON.stringify({
+      name: user.name, kvart: user.kvart, mail: user.mail,
+      id: user.id, registeredAt: user.registeredAt,
+    }));
+  }catch(e){}
+}
+
+function loadUser(){
+  try{
+    const raw = localStorage.getItem('vbp_user');
+    if(!raw) return false;
+    const u = JSON.parse(raw);
+    if(!u.name || !u.id) return false;
+    user.name = u.name;
+    user.kvart = u.kvart || 'Vrnjačka Banja';
+    user.mail = u.mail || '';
+    user.id = u.id;
+    user.registeredAt = u.registeredAt || Date.now();
+    user.shareUrl = CFG.APP_URL + '/?ref=' + user.id;
+    return true;
+  }catch(e){ return false; }
+}
+
+/* ─── SUPABASE OPERACIJE ──────────────────────────── */
+async function registerInDb(){
+  if(!sb) return;
+  try{
+    // Proveri da li već postoji
+    const {data:existing} = await sb.from('citizens')
+      .select('id').eq('citizen_code', user.id).maybeSingle();
+    if(existing) return;
+    // Proveri ref kod iz URL-a
+    const refCode = new URLSearchParams(window.location.search).get('ref') || '';
+    await sb.from('citizens').insert({
+      citizen_code: user.id,
+      name: user.name,
+      email: user.mail,
+      kvart: user.kvart,
+      consent_email: document.getElementById('inp-consent')?.checked ?? false,
+      ref_code: refCode || null,
+      device_type: /Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+    });
+    // Ako je stigao preko ref linka — označi referral
+    if(refCode){
+      await sb.from('referrals').insert({
+        inviter_code: refCode,
+        invited_email: user.mail,
+        status: 'registered',
+      }).catch(()=>{});
+    }
+  }catch(e){ console.log('DB register skip:', e.message); }
+}
+
+async function fetchNews(category='sve', limit=20){
+  if(!sb) return getDemoNews(category);
+  try{
+    let q = sb.from('news')
+      .select('id,title,summary,category,is_urgent,published_at,image_url')
+      .eq('is_active', true)
+      .lte('published_at', new Date().toISOString())
+      .order('published_at', {ascending:false})
+      .limit(limit);
+    if(q && category !== 'sve') q = q.eq('category', category);
+    const {data, error} = await q;
+    if(error) throw error;
+    return data || [];
+  }catch(e){
+    console.log('fetchNews skip:', e.message);
+    return getDemoNews(category);
+  }
+}
+
+async function fetchEvents(limit=10){
+  if(!sb) return getDemoEvents();
+  try{
+    const now = new Date().toISOString();
+    const {data, error} = await sb.from('events')
+      .select('id,title,description,date_start,location_name,category,price,is_active')
+      .eq('is_active', true)
+      .gte('date_start', now)
+      .order('date_start', {ascending:true})
+      .limit(limit);
+    if(error) throw error;
+    return data || [];
+  }catch(e){
+    console.log('fetchEvents skip:', e.message);
+    return getDemoEvents();
+  }
+}
+
+async function fetchDiscounts(limit=20){
+  if(!sb) return getDemoDiscounts();
+  try{
+    const today = new Date().toISOString().split('T')[0];
+    const {data, error} = await sb.from('discounts')
+      .select('id,title,description,percent,conditions,valid_until,vbp_partners(name,type)')
+      .eq('is_active', true)
+      .or(`valid_until.is.null,valid_until.gte.${today}`)
+      .order('percent', {ascending:false})
+      .limit(limit);
+    if(error) throw error;
+    return data || [];
+  }catch(e){
+    console.log('fetchDiscounts skip:', e.message);
+    return getDemoDiscounts();
+  }
+}
+
+async function trackAction(action, entityType='', entityId=''){
+  if(!sb) return;
+  try{
+    await sb.from('analytics').insert({
+      citizen_code: user.id || null,
+      action, entity_type: entityType, entity_id: entityId||null,
+      kvart: user.kvart || null,
+      device_type: /Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+    });
+  }catch(e){}
+}
+
+/* ─── DEMO PODACI (kad nema Supabase) ───────────── */
+function getDemoNews(cat){
+  const all = [
+    {id:'n1',title:'Radovi na vodovodnoj mreži u centru',summary:'JKP obaveštava da se izvode radovi. Moguće smanjenje pritiska 07–10h.',category:'komunalno',is_urgent:false,published_at: new Date(Date.now()-7200000).toISOString()},
+    {id:'n2',title:'Planirano isključenje struje — Ul. Kralja Petra I',summary:'Danas 09:00–13:00h. Pogođeni kućni br. 12–48. EPS: 0800/100-021.',category:'hitno',is_urgent:true,published_at: new Date(Date.now()-3600000).toISOString()},
+    {id:'n3',title:'Nova klupa i česma u Narodnom parku',summary:'Postavljeno 12 novih klupa i obnovljene 3 česme duž šetnice.',category:'vest',is_urgent:false,published_at: new Date(Date.now()-18000000).toISOString()},
+    {id:'n4',title:'Javna rasprava o budžetu za 2027. godinu',summary:'Skupština opštine poziva sve građane. 10. jul u 11:00h, Skupštinska sala.',category:'opstina',is_urgent:false,published_at: new Date(Date.now()-172800000).toISOString()},
+    {id:'n5',title:'Privremena zabrana saobraćaja — Ul. Svetog Save',summary:'Od 1. do 15. jula zbog asfaltiranja. Preusmerenje kroz Ul. Kneza Miloša.',category:'saobracaj',is_urgent:false,published_at: new Date(Date.now()-86400000).toISOString()},
+    {id:'n6',title:'Rekonstrukcija šetnice uz Vrnjačku reku',summary:'Projekat vredan 28 miliona din — završetak do septembra 2026.',category:'vest',is_urgent:false,published_at: new Date(Date.now()-259200000).toISOString()},
+  ];
+  return cat === 'sve' ? all : all.filter(n=>n.category===cat);
+}
+
+function getDemoEvents(){
+  const now = Date.now();
+  return [
+    {id:'e1',title:'Letnji karneval u centru',description:'Muzika, zabava i sadržaj za celu porodicu.',date_start: new Date(now+172800000).toISOString(),location_name:'Trg Slobode',category:'zabava',price:'Besplatan ulaz'},
+    {id:'e2',title:'Tribina: Razvoj turizma u VB',description:'Dom kulture, sala prizemlje.',date_start: new Date(now+432000000).toISOString(),location_name:'Dom kulture',category:'tribina',price:'Besplatan ulaz'},
+    {id:'e3',title:'Vašar — 140. godišnjica banje',description:'Tradicionalni vašar uz bogat kulturni program.',date_start: new Date(now+604800000).toISOString(),location_name:'Narodni park',category:'tradicija',price:'Besplatan ulaz'},
+    {id:'e4',title:'Koncert etno muzike — Banjski dani',description:'Letnja pozornica, 20:00h.',date_start: new Date(now+1209600000).toISOString(),location_name:'Letnja pozornica',category:'kultura',price:'500 din'},
+  ];
+}
+
+function getDemoDiscounts(){
+  return [
+    {id:'d1',title:'20% na svako piće',description:'Uz prikaz VBPuls znacke',percent:20,conditions:'Uz prikaz znacke na kasi',vbp_partners:{name:'Kafana Vrnjci',type:'kafana'}},
+    {id:'d2',title:'10% na lekarska sredstva',description:'Sva kozmetička i lekarska sredstva',percent:10,conditions:'Uz prikaz znacke',vbp_partners:{name:'Apoteka Banjica',type:'apoteka'}},
+    {id:'d3',title:'30% vikend ulaz',description:'Za meštane Vrnjačke Banje',percent:30,conditions:'Uz prikaz znacke + lična karta',vbp_partners:{name:'Aqua Park VB',type:'zabava'}},
+    {id:'d4',title:'15% porudžbine za poneti',description:'Sve pizza i paste',percent:15,conditions:'Uz prikaz znacke',vbp_partners:{name:'Pizzeria Centar',type:'restoran'}},
+    {id:'d5',title:'40% mesečna članarina',description:'Za sve stalne stanovnike',percent:40,conditions:'Uz prikaz znacke + registracija',vbp_partners:{name:'Teretana PowerVB',type:'sport'}},
+    {id:'d6',title:'25% sve frizerske usluge',description:'Pon–Sri uz znacku',percent:25,conditions:'Uz prikaz znacke',vbp_partners:{name:'Frizerski salon Mila',type:'usluge'}},
+    {id:'d7',title:'10% knjige domaćih autora',description:'Sva domaća književnost',percent:10,conditions:'Uz prikaz znacke',vbp_partners:{name:'Knjižara Logos',type:'kultura'}},
+  ];
+}
+
+/* ─── RENDER FUNKCIJE ─────────────────────────────── */
+function renderNewsScroll(items){
+  const el = document.getElementById('home-news-scroll');
+  if(!items.length){ el.innerHTML='<div class="empty-state" style="min-width:200px;padding:24px">Nema vesti</div>'; return; }
+  const catImgs = {
+    'hitno': 'linear-gradient(145deg,#280a0a,#3c1010)',
+    'vest':  'linear-gradient(145deg,#061a0c,#0a2412)',
+    'komunalno': 'linear-gradient(145deg,#061a38,#0a2248)',
+    'opstina': 'linear-gradient(145deg,#0e0a28,#18103c)',
+    'saobracaj': 'linear-gradient(145deg,#1a1106,#2a1a08)',
+  };
+  el.innerHTML = items.slice(0,5).map(n=>`
+    <div class="nc" onclick="openNewsModal('${esc(n.id)}')">
+      <div class="nc-img" style="background:${catImgs[n.category]||catImgs.vest}">
+        <div style="width:44px;height:44px;background:${catBg(n.category)};border-radius:14px;display:flex;align-items:center;justify-content:center">
+          ${catIcon(n.category)}
+        </div>
+      </div>
+      <div class="nc-body">
+        <div class="nc-cat" style="color:${catColor(n.category)}">${esc(n.category.toUpperCase())}</div>
+        <div class="nc-title">${esc(n.title)}</div>
+        <div class="nc-time">${timeAgo(n.published_at)}</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderHomeEvents(items){
+  const el = document.getElementById('home-events');
+  if(!items.length){ el.innerHTML='<div class="empty-state">Nema nadolazećih događaja</div>'; return; }
+  const tagMap = {
+    'zabava':'tb','tribina':'tg','tradicija':'to',
+    'kultura':'tg','sport':'tr','ostalo':'tp',
+  };
+  el.innerHTML = items.slice(0,3).map(ev=>{
+    const d = fmtDateShort(ev.date_start);
+    return `<div class="ec" onclick="openEventModal('${esc(ev.id)}')">
+      <div class="ec-date"><div class="ec-day">${d.day}</div><div class="ec-mon">${d.mon}</div></div>
+      <div>
+        <div class="ec-title">${esc(ev.title)}</div>
+        <div class="ec-meta">📍 ${esc(ev.location_name||'')}${ev.price?` · ${esc(ev.price)}`:''}</div>
+        <span class="tag ${tagMap[ev.category]||'tg'}">${esc(ev.category||'')}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPopustiScroll(items){
+  const el = document.getElementById('home-popusti-scroll');
+  if(!items.length){ el.innerHTML='<div class="empty-state" style="min-width:200px;padding:24px">Nema popusta</div>'; return; }
+  const icoColors = ['rgba(245,158,11,0.10)','rgba(29,185,84,0.10)','rgba(59,130,246,0.10)','rgba(239,68,68,0.10)','rgba(139,92,246,0.10)'];
+  el.innerHTML = items.slice(0,6).map((d,i)=>`
+    <div class="pc" onclick="showToast('💰 ${esc(d.percent)}% popusta uz VBPuls Znacku!')">
+      <div class="pc-ico" style="background:${icoColors[i%icoColors.length]}">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="#f59e0b" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="pc-pct">${esc(String(d.percent))}%</div>
+      <div class="pc-place">${esc(d.vbp_partners?.name||'Partner')}</div>
+      <div class="pc-desc">${esc(d.description||d.title)}</div>
+      <div class="pc-badge">Pokaži znacku</div>
+    </div>`).join('');
+}
+
+function renderNewsList(items){
+  const el = document.getElementById('news-list');
+  if(!items.length){ el.innerHTML='<div class="empty-state"><svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><br>Nema vesti u ovoj kategoriji</div>'; return; }
+  el.innerHTML = items.map(n=>`
+    <div class="nli" data-cat="${esc(n.category)}" onclick="openNewsModal('${esc(n.id)}')">
+      <div class="nli-ico" style="background:${catBg(n.category)}">${catIcon(n.category)}</div>
+      <div>
+        <div class="nli-cat" style="color:${catColor(n.category)}">${esc(n.category.toUpperCase())}</div>
+        <div class="nli-t">${esc(n.title)}</div>
+        <div class="nli-s">${esc(n.summary||'')}</div>
+        <div class="nli-time">${timeAgo(n.published_at)}</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderEventsList(items){
+  const el = document.getElementById('events-list');
+  if(!items.length){ el.innerHTML='<div class="empty-state">Nema nadolazećih događaja</div>'; return; }
+  const tagMap = {'zabava':'tb','tribina':'tg','tradicija':'to','kultura':'tg','sport':'tr','ostalo':'tp'};
+  el.innerHTML = items.map(ev=>{
+    const d = fmtDateShort(ev.date_start);
+    return `<div class="ec" onclick="openEventModal('${esc(ev.id)}')">
+      <div class="ec-date"><div class="ec-day">${d.day}</div><div class="ec-mon">${d.mon}</div></div>
+      <div>
+        <div class="ec-title">${esc(ev.title)}</div>
+        <div class="ec-meta">📍 ${esc(ev.location_name||'')}${ev.price?` · ${esc(ev.price)}`:''}</div>
+        <span class="tag ${tagMap[ev.category]||'tg'}">${esc(ev.category||'')}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPopustiLista(items){
+  const badge = document.getElementById('popust-badge');
+  badge.innerHTML = `<div style="font-size:12px;font-weight:700;color:var(--gold3)"><span style="font-size:20px;font-weight:900;color:var(--gold2)">${items.length}</span> aktivnih popusta u gradu</div>`;
+  const el = document.getElementById('popusti-lista');
+  const icoColors = ['rgba(245,158,11,0.09)','rgba(29,185,84,0.09)','rgba(59,130,246,0.09)','rgba(239,68,68,0.09)','rgba(139,92,246,0.09)'];
+  el.innerHTML = items.map((d,i)=>`
+    <div class="pl-item" onclick="showToast('💰 ${esc(d.vbp_partners?.name||'')} — ${esc(d.percent)}% uz Znacku')">
+      <div class="pl-ico" style="background:${icoColors[i%icoColors.length]}">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="#f59e0b" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      </div>
+      <div style="flex:1">
+        <div class="pl-pct">${esc(String(d.percent))}% POPUSTA</div>
+        <div class="pl-name">${esc(d.vbp_partners?.name||'Partner')}</div>
+        <div class="pl-desc">${esc(d.description||d.title)}</div>
+        ${d.conditions?`<div style="font-size:10px;color:var(--muted2);margin-top:3px;font-weight:500">${esc(d.conditions)}</div>`:''}
+      </div>
+      <div class="pl-tag">${esc(d.vbp_partners?.type||'')}</div>
+    </div>`).join('');
+}
+
+function renderAlerts(items){
+  const zone = document.getElementById('alert-zone');
+  const urgent = items.filter(n=>n.is_urgent);
+  if(!urgent.length){ zone.style.display='none'; return; }
+  zone.style.display='block';
+  zone.innerHTML = urgent.slice(0,2).map(n=>`
+    <div class="alert-strip" onclick="openNewsModal('${esc(n.id)}')">
+      <div class="alert-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#ef4444" stroke-width="1.8" fill="rgba(239,68,68,0.08)" stroke-linejoin="round"/></svg></div>
+      <div><div class="alert-t">${esc(n.title)}</div><div class="alert-d">${esc(n.summary||'')}</div></div>
+    </div>`).join('');
+}
+
+function renderHeroInfo(news, events, discounts){
+  const now = new Date();
+  const days = ['Nedelja','Ponedeljak','Utorak','Sreda','Četvrtak','Petak','Subota'];
+  const months = ['jan','feb','mar','apr','maj','jun','jul','avg','sep','okt','nov','dec'];
+  document.getElementById('hero-date-txt').textContent =
+    `${days[now.getDay()]}, ${now.getDate()}. ${months[now.getMonth()]} ${now.getFullYear()}.`;
+  const newsCount = news.length;
+  const evCount = events.length;
+  document.getElementById('hero-sub').textContent =
+    `Danas ima ${newsCount} obaveštenja i ${evCount} nadolazećih događaja.`;
+  document.getElementById('hero-chip-discounts').textContent =
+    `⭐ ${discounts.length} popusta aktiv.`;
+}
+
+/* ─── MODALI ──────────────────────────────────────── */
+function openNewsModal(id){
+  const n = newsData.find(x=>x.id===id);
+  if(!n) return;
+  document.getElementById('modal-content').innerHTML = `
+    <div style="width:44px;height:44px;border-radius:13px;background:${catBg(n.category)};display:flex;align-items:center;justify-content:center;margin-bottom:14px">${catIcon(n.category)}</div>
+    <div class="mtitle">${esc(n.title)}</div>
+    <div style="font-size:9px;font-weight:900;letter-spacing:0.12em;color:${catColor(n.category)};margin:6px 0 16px;text-transform:uppercase">${esc(n.category)}</div>
+    <div style="font-size:13px;color:var(--muted);font-weight:500;line-height:1.75;white-space:pre-line">${esc(n.body||n.summary||'')}</div>
+    <div style="margin-top:16px;font-size:10px;color:var(--muted2);font-weight:600">${fmtDate(n.published_at)}</div>`;
+  document.getElementById('modal-main').classList.add('open');
+  trackAction('news_click', 'news', id);
+}
+
+function openEventModal(id){
+  const ev = eventsData.find(x=>x.id===id);
+  if(!ev) return;
+  const d = fmtDateShort(ev.date_start);
+  document.getElementById('modal-content').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <div style="width:52px;height:52px;border-radius:14px;background:var(--bg3);border:1px solid var(--border2);display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <div style="font-size:20px;font-weight:900;line-height:1">${d.day}</div>
+        <div style="font-size:9px;font-weight:800;color:var(--green);text-transform:uppercase">${d.mon}</div>
+      </div>
+      <div><div class="mtitle" style="font-size:16px">${esc(ev.title)}</div></div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);font-weight:600;line-height:1.7;margin-bottom:14px">
+      📍 ${esc(ev.location_name||'')}${ev.price?`<br>🎟️ ${esc(ev.price)}`:''}
+    </div>
+    ${ev.description?`<div style="font-size:13px;color:var(--muted);font-weight:500;line-height:1.75">${esc(ev.description)}</div>`:''}`;
+  document.getElementById('modal-main').classList.add('open');
+  trackAction('event_click', 'event', id);
+}
+
+function closeModal(){ document.getElementById('modal-main').classList.remove('open'); }
+document.getElementById('modal-main').addEventListener('click',function(e){if(e.target===this)closeModal()});
+
+/* ─── NAVIGACIJA ──────────────────────────────────── */
+function goPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  const map = {'page-home':'nav-home','page-vesti':'nav-vesti','page-dogadjaji':'nav-dogadjaji','page-popusti':'nav-popusti','page-znacka':'nav-znacka'};
+  if(map[id]) document.getElementById(map[id])?.classList.add('active');
+  window.scrollTo(0,0);
+  trackAction('page_view', 'page', id);
+}
+
+/* ─── NEWS FILTER ─────────────────────────────────── */
+function filterNews(el, cat){
+  document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  currentNewsFilter = cat;
+  const filtered = cat==='sve' ? newsData : newsData.filter(n=>n.category===cat);
+  renderNewsList(filtered);
+}
+
+/* ─── ZNACKA ──────────────────────────────────────── */
+function applyProfile(){
+  document.getElementById('hero-ime').textContent = user.name.split(' ')[0] || 'Meštanine';
+  document.getElementById('z-name').textContent   = user.name || '—';
+  document.getElementById('z-kvart').textContent  = user.kvart;
+  document.getElementById('z-mail').textContent   = user.mail;
+  document.getElementById('z-id').textContent     = user.id;
+  document.getElementById('z-yr').textContent     = new Date().getFullYear();
+  const lnk = user.shareUrl.replace('https://','');
+  document.getElementById('share-link-display').textContent = lnk;
+  document.getElementById('z-link-mini').textContent = lnk;
+  const dana = user.registeredAt
+    ? Math.max(1, Math.floor((Date.now()-user.registeredAt)/86400000))
+    : 1;
+  document.getElementById('z-stat-dana').textContent = dana;
+  buildQR();
+}
+
+function buildQR(){
+  const el = document.getElementById('mini-qr'); el.innerHTML='';
+  if(!user.shareUrl || user.shareUrl.includes('...')) return;
+  try{
+    new QRCode(el,{
+      text: user.shareUrl,
+      width:60,height:60,
+      colorDark:'#000000',colorLight:'#ffffff',
+      correctLevel:QRCode.CorrectLevel.M,
+    });
+  }catch(e){}
+}
+
+/* ─── SHARE ───────────────────────────────────────── */
+function doShare(type){
+  const url = user.shareUrl || CFG.APP_URL;
+  const msg = `🏙️ VBPuls — digitalni puls Vrnjačke Banje!\nVesti, događaji i popusti za meštane.\n${url}`;
+  if(type==='viber')    window.open('viber://forward?text='+encodeURIComponent(msg),'_blank');
+  else if(type==='whatsapp') window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+  else if(type==='copy'){
+    navigator.clipboard?.writeText(url).then(()=>showToast('✅ Link kopiran!'));
+    return;
+  }
+  else if(type==='native'&&navigator.share){
+    navigator.share({title:'VBPuls',text:'Digitalni puls Vrnjačke Banje',url}).catch(()=>{});
+    return;
+  }
+  else{ navigator.clipboard?.writeText(url).then(()=>showToast('✅ Link kopiran!')); return; }
+  showToast('🔗 Otvara se...');
+  trackAction('share_click', 'znacka', type);
+}
+
+/* ─── HELPERS ─────────────────────────────────────── */
+function call(num, label){
+  showToast(`📞 ${label}: ${num}`);
+  // window.location.href = 'tel:' + num.replace(/\D/g,'');
+}
+
+function timeAgo(iso){
+  if(!iso) return '';
+  const diff = Date.now() - new Date(iso).getTime();
+  const min  = Math.floor(diff/60000);
+  const hr   = Math.floor(diff/3600000);
+  const day  = Math.floor(diff/86400000);
+  if(min<2)  return 'Upravo';
+  if(min<60) return `Pre ${min} min`;
+  if(hr<24)  return `Pre ${hr}h`;
+  if(day===1)return 'Juče';
+  return `Pre ${day} dana`;
+}
+
+/* ─── TELEGRAM ────────────────────────────────────── */
+function connectTelegram(){
+  if(!user.id){ showToast('⚠️ Prvo dovršite registraciju'); return; }
+  const botUsername = 'VBPulsVrnjciBot'; // ← promeniti na pravi username bota
+  const link = `https://t.me/${botUsername}?start=${user.id}`;
+  window.open(link, '_blank');
+  showToast('💬 Otvara Telegram — pratite uputstvo u botu');
+  trackAction('telegram_connect_click');
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+/* ─── LAUNCH APP ──────────────────────────────────── */
+async function launchApp(){
+  document.getElementById('screen-onboard').classList.remove('active');
+  document.getElementById('screen-app').classList.add('active');
+  applyProfile();
+
+  // Učitaj podatke
+  const [news, events, discounts] = await Promise.all([
+    fetchNews('sve', 30),
+    fetchEvents(10),
+    fetchDiscounts(20),
+  ]);
+  newsData      = news;
+  eventsData    = events;
+  discountsData = discounts;
+
+  // Render home
+  renderAlerts(news);
+  renderNewsScroll(news);
+  renderHomeEvents(events);
+  renderPopustiScroll(discounts);
+  renderHeroInfo(news, events, discounts);
+
+  // Render ostale stranice unapred
+  renderNewsList(news);
+  renderEventsList(events);
+  renderPopustiLista(discounts);
+
+  // Znacka statistike
+  document.getElementById('z-stat-popusti').textContent = discounts.length;
+
+  trackAction('app_open');
+}
+
+/* ─── PWA SERVICE WORKER ──────────────────────────── */
+function registerSW(){
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  }
+}
+
+/* ─── INIT ────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', async ()=>{
+  initSupabase();
+  registerSW();
+
+  // Proveri ref param
+  const refParam = new URLSearchParams(window.location.search).get('ref');
+  if(refParam){
+    document.getElementById('inp-ime').placeholder = '🎉 Stigli ste na poziv — unesite vaše ime';
+  }
+
+  // Proveri localStorage — možda je već registrovan
+  const isReturning = loadUser();
+
+  // Kratak loading (min 600ms za bolji UX)
+  await new Promise(r=>setTimeout(r,600));
+  document.getElementById('loading-screen').style.display='none';
+
+  if(isReturning){
+    // Preskočи onboard — direktno u app
+    launchApp();
+  } else {
+    document.getElementById('screen-onboard').classList.add('active');
+  }
+});
+</script>
+</body>
+</html>
