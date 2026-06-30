@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="sr-Latn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VBPuls Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
+<script src="./config.js"></script>
+<style>
+:root{
+  --bg:#060d18;--bg2:#0b1628;--bg3:#0f1f3a;--bg4:#142848;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --text:#e6efff;--muted:rgba(160,190,240,0.55);--muted2:rgba(160,190,240,0.30);
+  --green:#1db954;--green2:#15803d;--blue:#3b82f6;--blue2:#1e40af;
+  --gold:#fbbf24;--gold2:#f59e0b;--red:#ef4444;--red2:#fca5a5;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Inter',-apple-system,sans-serif;
+  min-height:100vh;
+}
+.screen{display:none;min-height:100vh}
+.screen.active{display:block}
+
+/* LOGIN */
+.login-wrap{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:24px;
+}
+.login-card{
+  width:100%;max-width:380px;
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:22px;padding:32px 28px;
+}
+.login-logo{
+  width:60px;height:60px;border-radius:16px;margin:0 auto 20px;
+  background:linear-gradient(145deg,#0b1e0f,#071525);
+  border:1px solid rgba(29,185,84,0.2);
+  display:flex;align-items:center;justify-content:center;
+}
+.login-title{font-size:20px;font-weight:900;text-align:center;letter-spacing:-0.03em;margin-bottom:4px}
+.login-sub{font-size:12px;color:var(--muted);text-align:center;margin-bottom:24px}
+.f-label{font-size:10px;font-weight:800;letter-spacing:0.1em;color:var(--muted2);text-transform:uppercase;margin-bottom:6px;display:block}
+.f-input{
+  width:100%;padding:13px 15px;border-radius:12px;
+  background:var(--bg3);border:1.5px solid var(--border2);
+  color:var(--text);font-size:14px;font-weight:600;
+  margin-bottom:14px;outline:none;font-family:inherit;
+}
+.f-input:focus{border-color:rgba(29,185,84,0.45)}
+.btn-p{
+  width:100%;padding:13px;border-radius:13px;border:none;
+  background:linear-gradient(135deg,var(--green2),var(--blue2));
+  color:white;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;
+}
+.login-err{font-size:12px;color:var(--red2);text-align:center;margin-top:10px;min-height:16px}
+
+/* APP SHELL */
+.shell{display:flex;min-height:100vh}
+.sidebar{
+  width:230px;flex-shrink:0;
+  background:var(--bg2);border-right:1px solid var(--border);
+  padding:20px 14px;position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.sb-logo{display:flex;align-items:center;gap:10px;padding:0 8px 20px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.sb-logo-ico{width:34px;height:34px;border-radius:10px;background:linear-gradient(145deg,#0b1e0f,#071525);border:1px solid rgba(29,185,84,0.2);display:flex;align-items:center;justify-content:center}
+.sb-logo-t{font-size:15px;font-weight:900;letter-spacing:-0.02em}
+.sb-logo-s{font-size:9px;color:var(--muted);font-weight:600}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:11px;
+  cursor:pointer;margin-bottom:2px;color:var(--muted);font-size:13px;font-weight:700;
+  transition:background 0.15s,color 0.15s;
+}
+.nav-item:hover{background:var(--bg3)}
+.nav-item.active{background:rgba(29,185,84,0.1);color:var(--green)}
+.nav-item svg{flex-shrink:0;opacity:0.7}
+.nav-item.active svg{opacity:1}
+.sb-footer{margin-top:auto;padding-top:16px;border-top:1px solid var(--border)}
+.logout-btn{
+  width:100%;padding:10px;border-radius:10px;border:1px solid var(--border2);
+  background:transparent;color:var(--muted);font-size:12px;font-weight:700;
+  cursor:pointer;font-family:inherit;
+}
+.logout-btn:hover{background:var(--bg3);color:var(--text)}
+
+.main{flex:1;padding:28px 32px;max-width:1100px}
+.page-h{font-size:24px;font-weight:900;letter-spacing:-0.03em;margin-bottom:4px}
+.page-s{font-size:13px;color:var(--muted);font-weight:500;margin-bottom:24px}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.stat-card{
+  background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:18px;
+}
+.stat-num{font-size:28px;font-weight:900;letter-spacing:-0.03em}
+.stat-lbl{font-size:11px;color:var(--muted);font-weight:600;margin-top:4px}
+.stat-trend{font-size:10px;font-weight:700;margin-top:6px}
+.trend-up{color:var(--green)}
+
+/* TABLE LIST */
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px}
+.search-box{
+  flex:1;max-width:320px;padding:10px 14px;border-radius:11px;
+  background:var(--bg2);border:1px solid var(--border2);
+  color:var(--text);font-size:13px;font-family:inherit;outline:none;
+}
+.btn-new{
+  padding:10px 18px;border-radius:11px;border:none;
+  background:linear-gradient(135deg,var(--green2),var(--blue2));
+  color:white;font-size:13px;font-weight:800;cursor:pointer;
+  display:flex;align-items:center;gap:6px;font-family:inherit;
+}
+
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{
+  text-align:left;font-size:10px;font-weight:800;letter-spacing:0.08em;
+  text-transform:uppercase;color:var(--muted2);padding:10px 14px;
+  border-bottom:1px solid var(--border);
+}
+.data-table td{
+  padding:13px 14px;font-size:13px;border-bottom:1px solid var(--border);
+  vertical-align:middle;
+}
+.data-table tr:hover{background:rgba(255,255,255,0.015)}
+.badge{
+  display:inline-block;padding:3px 9px;border-radius:20px;
+  font-size:10px;font-weight:800;letter-spacing:0.03em;
+}
+.b-urgent{background:rgba(239,68,68,0.12);color:var(--red2)}
+.b-active{background:rgba(29,185,84,0.12);color:#a7f3c2}
+.b-inactive{background:rgba(160,190,240,0.10);color:var(--muted)}
+.b-vest{background:rgba(29,185,84,0.1);color:#a7f3c2}
+.b-komunalno{background:rgba(59,130,246,0.1);color:#93c5fd}
+.b-hitno{background:rgba(239,68,68,0.1);color:#fca5a5}
+.b-opstina{background:rgba(139,92,246,0.1);color:#c4b5fd}
+.b-saobracaj{background:rgba(245,158,11,0.1);color:#fde68a}
+
+.row-actions{display:flex;gap:6px}
+.icon-btn{
+  width:30px;height:30px;border-radius:9px;border:1px solid var(--border2);
+  background:var(--bg3);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--muted);transition:all 0.15s;
+}
+.icon-btn:hover{background:var(--bg4);color:var(--text)}
+.icon-btn.danger:hover{background:rgba(239,68,68,0.12);color:var(--red2);border-color:rgba(239,68,68,0.3)}
+
+/* MODAL FORM */
+.modal-overlay{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;padding:20px;
+}
+.modal-overlay.open{display:flex}
+.modal-box{
+  width:100%;max-width:520px;max-height:90vh;overflow-y:auto;
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:20px;padding:26px;
+}
+.modal-title{font-size:18px;font-weight:900;margin-bottom:18px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.checkbox-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.checkbox-row input{width:18px;height:18px;accent-color:var(--green)}
+.checkbox-row label{font-size:13px;font-weight:600;color:var(--text)}
+textarea.f-input{resize:vertical;min-height:90px;font-family:inherit}
+.modal-actions{display:flex;gap:10px;margin-top:18px}
+.btn-cancel{
+  flex:1;padding:12px;border-radius:12px;border:1px solid var(--border2);
+  background:transparent;color:var(--muted);font-weight:700;cursor:pointer;font-family:inherit;
+}
+.btn-save{
+  flex:2;padding:12px;border-radius:12px;border:none;
+  background:linear-gradient(135deg,var(--green2),var(--blue2));
+  color:white;font-weight:800;cursor:pointer;font-family:inherit;
+}
+
+.empty{text-align:center;padding:48px;color:var(--muted2);font-size:13px}
+.loader{text-align:center;padding:48px;color:var(--muted2);font-size:13px}
+
+.toast{
+  position:fixed;bottom:24px;right:24px;
+  background:var(--bg3);border:1px solid var(--border2);
+  padding:12px 20px;border-radius:12px;font-size:13px;font-weight:700;
+  z-index:999;opacity:0;pointer-events:none;transition:opacity 0.25s;
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);
+}
+.toast.show{opacity:1}
+
+.section-label{font-size:14px;font-weight:800;margin:24px 0 12px;display:flex;align-items:center;gap:8px}
+
+/* Notif send box */
+.send-box{
+  background:var(--bg2);border:1px solid var(--border2);border-radius:16px;
+  padding:20px;margin-bottom:24px;
+}
+.target-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.target-pill{
+  padding:6px 13px;border-radius:20px;font-size:11px;font-weight:700;
+  background:var(--bg3);border:1px solid var(--border2);color:var(--muted);
+  cursor:pointer;
+}
+.target-pill.active{background:rgba(29,185,84,0.12);border-color:rgba(29,185,84,0.3);color:#a7f3c2}
+
+@media(max-width:880px){
+  .sidebar{display:none}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .form-row{grid-template-columns:1fr}
+  .main{padding:18px}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════ LOGIN ════════ -->
+<div id="screen-login" class="screen active">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-logo">
+        <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+          <path d="M24 4L6 16V44H42V16L24 4Z" stroke="url(#lg)" stroke-width="2" fill="none"/>
+          <path d="M18 44V30H30V44" stroke="url(#lg)" stroke-width="1.8" fill="none"/>
+          <circle cx="24" cy="18" r="4" fill="#fbbf24"/>
+          <defs><linearGradient id="lg" x1="6" y1="4" x2="42" y2="44" gradientUnits="userSpaceOnUse"><stop stop-color="#1db954"/><stop offset="1" stop-color="#3b82f6"/></linearGradient></defs>
+        </svg>
+      </div>
+      <div class="login-title">VBPuls Admin</div>
+      <div class="login-sub">Panel za upravljanje sadržajem</div>
+      <label class="f-label">Lozinka</label>
+      <input type="password" class="f-input" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="btn-p" onclick="doLogin()">Prijavi se</button>
+      <div class="login-err" id="login-err"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ APP ════════ -->
+<div id="screen-app" class="screen">
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-ico">
+        <svg width="18" height="18" viewBox="0 0 48 48" fill="none"><path d="M24 4L6 16V44H42V16L24 4Z" stroke="url(#sg)" stroke-width="2.5" fill="none"/><path d="M18 44V30H30V44" stroke="url(#sg)" stroke-width="2" fill="none"/><circle cx="24" cy="18" r="4" fill="#fbbf24"/><defs><linearGradient id="sg" x1="6" y1="4" x2="42" y2="44" gradientUnits="userSpaceOnUse"><stop stop-color="#1db954"/><stop offset="1" stop-color="#3b82f6"/></linearGradient></defs></svg>
+      </div>
+      <div><div class="sb-logo-t">VBPuls</div><div class="sb-logo-s">Admin Panel</div></div>
+    </div>
+
+    <div class="nav-item active" onclick="goSection('dashboard',this)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" onclick="goSection('news',this)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+      Vesti
+    </div>
+    <div class="nav-item" onclick="goSection('events',this)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18" stroke-linecap="round"/></svg>
+      Događaji
+    </div>
+    <div class="nav-item" onclick="goSection('discounts',this)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      Popusti / Partneri
+    </div>
+    <div class="nav-item" onclick="goSection('citizens',this)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Meštani
+    </div>
+    <div class="nav-item" onclick="goSection('notify',this)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round"/><path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-linecap="round"/></svg>
+      Notifikacije
+    </div>
+    <div class="nav-item" onclick="goSection('eps',this)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      EPS Scraper log
+    </div>
+
+    <div class="sb-footer">
+      <button class="logout-btn" onclick="doLogout()">Odjavi se</button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div id="sec-dashboard" class="section">
+      <div class="page-h">Dashboard</div>
+      <div class="page-s">Pregled aktivnosti VBPuls platforme</div>
+
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card"><div class="stat-num">—</div><div class="stat-lbl">Ukupno meštana</div></div>
+        <div class="stat-card"><div class="stat-num">—</div><div class="stat-lbl">Novih danas</div></div>
+        <div class="stat-card"><div class="stat-num">—</div><div class="stat-lbl">Aktivnih vesti</div></div>
+        <div class="stat-card"><div class="stat-num">—</div><div class="stat-lbl">Otvaranja danas</div></div>
+      </div>
+
+      <div class="section-label">Poslednje vesti</div>
+      <table class="data-table" id="dash-recent-news">
+        <tbody><tr><td class="loader">Učitavanje...</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- VESTI -->
+    <div id="sec-news" class="section" style="display:none">
+      <div class="page-h">Vesti i obaveštenja</div>
+      <div class="page-s">Upravljajte vestima koje se prikazuju u aplikaciji</div>
+
+      <div class="toolbar">
+        <input class="search-box" placeholder="Pretraži vesti..." id="news-search" oninput="renderNewsTable()">
+        <button class="btn-new" onclick="openNewsModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Nova vest
+        </button>
+      </div>
+
+      <table class="data-table">
+        <thead><tr><th>Naslov</th><th>Kategorija</th><th>Status</th><th>Objavljeno</th><th>Pregledi</th><th></th></tr></thead>
+        <tbody id="news-tbody"><tr><td colspan="6" class="loader">Učitavanje...</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- DOGAĐAJI -->
+    <div id="sec-events" class="section" style="display:none">
+      <div class="page-h">Događaji</div>
+      <div class="page-s">Kulturni, sportski i zabavni događaji u gradu</div>
+
+      <div class="toolbar">
+        <input class="search-box" placeholder="Pretraži događaje..." id="events-search" oninput="renderEventsTable()">
+        <button class="btn-new" onclick="openEventModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Novi događaj
+        </button>
+      </div>
+
+      <table class="data-table">
+        <thead><tr><th>Naziv</th><th>Datum</th><th>Lokacija</th><th>Kategorija</th><th>Status</th><th></th></tr></thead>
+        <tbody id="events-tbody"><tr><td colspan="6" class="loader">Učitavanje...</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- POPUSTI -->
+    <div id="sec-discounts" class="section" style="display:none">
+      <div class="page-h">Popusti i partneri</div>
+      <div class="page-s">Lokalni biznisi i njihovi popusti za meštane</div>
+
+      <div class="toolbar">
+        <input class="search-box" placeholder="Pretraži partnere..." id="partners-search" oninput="renderPartnersTable()">
+        <button class="btn-new" onclick="openPartnerModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Novi partner
+        </button>
+      </div>
+
+      <table class="data-table">
+        <thead><tr><th>Partner</th><th>Tip</th><th>Telefon</th><th>Status</th><th></th></tr></thead>
+        <tbody id="partners-tbody"><tr><td colspan="5" class="loader">Učitavanje...</td></tr></tbody>
+      </table>
+
+      <div class="section-label">Aktivni popusti</div>
+      <div class="toolbar">
+        <div></div>
+        <button class="btn-new" onclick="openDiscountModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Novi popust
+        </button>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>Partner</th><th>Popust</th><th>Uslovi</th><th>Status</th><th></th></tr></thead>
+        <tbody id="discounts-tbody"><tr><td colspan="5" class="loader">Učitavanje...</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- MEŠTANI -->
+    <div id="sec-citizens" class="section" style="display:none">
+      <div class="page-h">Meštani</div>
+      <div class="page-s">Registrovani korisnici VBPuls platforme</div>
+
+      <div class="toolbar">
+        <input class="search-box" placeholder="Pretraži po imenu ili mailu..." id="citizens-search" oninput="renderCitizensTable()">
+        <div style="font-size:12px;color:var(--muted);font-weight:600" id="citizens-count">—</div>
+      </div>
+
+      <table class="data-table">
+        <thead><tr><th>Ime</th><th>Naselje</th><th>Email</th><th>Telegram</th><th>Pozvao</th><th>Registrovan</th></tr></thead>
+        <tbody id="citizens-tbody"><tr><td colspan="6" class="loader">Učitavanje...</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- NOTIFIKACIJE -->
+    <div id="sec-notify" class="section" style="display:none">
+      <div class="page-h">Notifikacije</div>
+      <div class="page-s">Pošaljite hitno obaveštenje na Telegram</div>
+
+      <div class="send-box">
+        <label class="f-label">Naslov</label>
+        <input class="f-input" id="notif-title" placeholder="npr. Isključenje vode — Centar">
+        <label class="f-label">Tekst poruke</label>
+        <textarea class="f-input" id="notif-body" placeholder="Detaljan opis obaveštenja..."></textarea>
+        <label class="f-label">Ciljna grupa</label>
+        <div class="target-pills" id="notif-target-pills">
+          <div class="target-pill active" data-val="all" onclick="selectTarget(this)">Svi meštani</div>
+          <div class="target-pill" data-val="kvart:Vrnjačka Banja" onclick="selectTarget(this)">Vrnjačka Banja</div>
+          <div class="target-pill" data-val="kvart:Vrnjci" onclick="selectTarget(this)">Vrnjci</div>
+          <div class="target-pill" data-val="kvart:Goč" onclick="selectTarget(this)">Goč</div>
+          <div class="target-pill" data-val="kvart:Lipova" onclick="selectTarget(this)">Lipova</div>
+        </div>
+        <button class="btn-new" style="width:100%;justify-content:center;padding:13px" onclick="sendNotification()">
+          📤 Pošalji na Telegram
+        </button>
+      </div>
+
+      <div class="section-label">Istorija poslatih notifikacija</div>
+      <table class="data-table">
+        <thead><tr><th>Naslov</th><th>Cilj</th><th>Poslato</th><th>Datum</th></tr></thead>
+        <tbody id="notif-history-tbody"><tr><td colspan="4" class="loader">Učitavanje...</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- EPS LOG -->
+    <div id="sec-eps" class="section" style="display:none">
+      <div class="page-h">EPS Scraper — Log</div>
+      <div class="page-s">Automatsko praćenje planiranih isključenja struje (Kraljevo region)</div>
+
+      <div class="toolbar">
+        <div style="font-size:12px;color:var(--muted)">Pokreće se automatski svaki dan u 06:00 i 18:00</div>
+        <button class="btn-new" onclick="runEpsScraperNow()">
+          🔄 Pokreni odmah
+        </button>
+      </div>
+
+      <table class="data-table">
+        <thead><tr><th>Vreme</th><th>Dan</th><th>Redova ukupno</th><th>Za Vrnj. Banju</th><th>Kreirano vesti</th><th>Status</th></tr></thead>
+        <tbody id="eps-log-tbody"><tr><td colspan="6" class="loader">Učitavanje...</td></tr></tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- ════════ MODAL: VEST ════════ -->
+<div class="modal-overlay" id="modal-news">
+  <div class="modal-box">
+    <div class="modal-title" id="news-modal-title">Nova vest</div>
+    <input type="hidden" id="news-id">
+    <label class="f-label">Naslov</label>
+    <input class="f-input" id="news-title" placeholder="Naslov vesti">
+    <label class="f-label">Kratak opis (za karticu)</label>
+    <input class="f-input" id="news-summary" placeholder="Jedna rečenica sažetka">
+    <label class="f-label">Pun tekst (može sadržati YouTube link)</label>
+    <textarea class="f-input" id="news-body" placeholder="Detaljan tekst vesti. Ako nalepite YouTube link, automatski će se prikazati kao video kartica."></textarea>
+    <div class="form-row">
+      <div>
+        <label class="f-label">Kategorija</label>
+        <select class="f-input" id="news-category">
+          <option value="vest">Grad</option>
+          <option value="komunalno">Komunalno</option>
+          <option value="hitno">Hitno</option>
+          <option value="opstina">Opština</option>
+          <option value="saobracaj">Saobraćaj</option>
+        </select>
+      </div>
+      <div>
+        <label class="f-label">Ističe (opciono)</label>
+        <input class="f-input" type="datetime-local" id="news-expires">
+      </div>
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="news-urgent">
+      <label for="news-urgent">Hitna vest (šalje se na Telegram)</label>
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="news-active" checked>
+      <label for="news-active">Aktivna (vidljiva u aplikaciji)</label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-news')">Otkaži</button>
+      <button class="btn-save" onclick="saveNews()">Sačuvaj vest</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ MODAL: DOGAĐAJ ════════ -->
+<div class="modal-overlay" id="modal-event">
+  <div class="modal-box">
+    <div class="modal-title" id="event-modal-title">Novi događaj</div>
+    <input type="hidden" id="event-id">
+    <label class="f-label">Naziv</label>
+    <input class="f-input" id="event-title" placeholder="Naziv događaja">
+    <label class="f-label">Opis</label>
+    <textarea class="f-input" id="event-description" placeholder="Opis događaja"></textarea>
+    <div class="form-row">
+      <div>
+        <label class="f-label">Datum i vreme početka</label>
+        <input class="f-input" type="datetime-local" id="event-date-start">
+      </div>
+      <div>
+        <label class="f-label">Kategorija</label>
+        <select class="f-input" id="event-category">
+          <option value="zabava">Zabava</option>
+          <option value="kultura">Kultura</option>
+          <option value="sport">Sport</option>
+          <option value="tradicija">Tradicija</option>
+          <option value="tribina">Tribina</option>
+          <option value="ostalo">Ostalo</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label class="f-label">Lokacija</label>
+        <input class="f-input" id="event-location" placeholder="npr. Trg Slobode">
+      </div>
+      <div>
+        <label class="f-label">Cena</label>
+        <input class="f-input" id="event-price" placeholder="Besplatan ulaz / 500 din">
+      </div>
+    </div>
+    <label class="f-label">Organizator</label>
+    <input class="f-input" id="event-organizer" placeholder="npr. Opština Vrnjačka Banja">
+    <div class="checkbox-row">
+      <input type="checkbox" id="event-active" checked>
+      <label for="event-active">Aktivan (vidljiv u aplikaciji)</label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-event')">Otkaži</button>
+      <button class="btn-save" onclick="saveEvent()">Sačuvaj događaj</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ MODAL: PARTNER ════════ -->
+<div class="modal-overlay" id="modal-partner">
+  <div class="modal-box">
+    <div class="modal-title" id="partner-modal-title">Novi partner</div>
+    <input type="hidden" id="partner-id">
+    <label class="f-label">Naziv biznisa</label>
+    <input class="f-input" id="partner-name" placeholder="npr. Kafana Vrnjci">
+    <div class="form-row">
+      <div>
+        <label class="f-label">Tip</label>
+        <select class="f-input" id="partner-type">
+          <option value="kafana">Kafana</option>
+          <option value="restoran">Restoran</option>
+          <option value="apoteka">Apoteka</option>
+          <option value="zabava">Zabava</option>
+          <option value="sport">Sport</option>
+          <option value="usluge">Usluge</option>
+          <option value="kultura">Kultura</option>
+        </select>
+      </div>
+      <div>
+        <label class="f-label">Telefon</label>
+        <input class="f-input" id="partner-phone" placeholder="036/xxx-xxx">
+      </div>
+    </div>
+    <label class="f-label">Adresa</label>
+    <input class="f-input" id="partner-address" placeholder="Ulica i broj">
+    <label class="f-label">Radno vreme</label>
+    <input class="f-input" id="partner-hours" placeholder="Pon–Ned 08:00–23:00">
+    <div class="checkbox-row">
+      <input type="checkbox" id="partner-active" checked>
+      <label for="partner-active">Aktivan partner</label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-partner')">Otkaži</button>
+      <button class="btn-save" onclick="savePartner()">Sačuvaj partnera</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ MODAL: POPUST ════════ -->
+<div class="modal-overlay" id="modal-discount">
+  <div class="modal-box">
+    <div class="modal-title" id="discount-modal-title">Novi popust</div>
+    <input type="hidden" id="discount-id">
+    <label class="f-label">Partner</label>
+    <select class="f-input" id="discount-partner"></select>
+    <label class="f-label">Naslov popusta</label>
+    <input class="f-input" id="discount-title" placeholder="npr. 20% na svako piće">
+    <label class="f-label">Opis</label>
+    <textarea class="f-input" id="discount-description" placeholder="Detaljniji opis ponude"></textarea>
+    <div class="form-row">
+      <div>
+        <label class="f-label">Procenat popusta</label>
+        <input class="f-input" type="number" id="discount-percent" placeholder="20" min="1" max="100">
+      </div>
+      <div>
+        <label class="f-label">Važi do (opciono)</label>
+        <input class="f-input" type="date" id="discount-valid-until">
+      </div>
+    </div>
+    <label class="f-label">Uslovi korišćenja</label>
+    <input class="f-input" id="discount-conditions" placeholder="Uz prikaz VBPuls Znacke">
+    <div class="checkbox-row">
+      <input type="checkbox" id="discount-active" checked>
+      <label for="discount-active">Aktivan popust</label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-discount')">Otkaži</button>
+      <button class="btn-save" onclick="saveDiscount()">Sačuvaj popust</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let sb = null;
+let cache = { news: [], events: [], partners: [], discounts: [], citizens: [], notifications: [], epsLog: [] };
+let notifTarget = 'all';
+
+/* ─── INIT ─────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+  sb = getSB();
+  if (VBP_ADMIN.isLoggedIn()) {
+    showApp();
+  }
+});
+
+/* ─── LOGIN ────────────────────────────────────────── */
+async function doLogin(){
+  const pass = document.getElementById('login-pass').value;
+  const ok = await VBP_ADMIN.login(pass);
+  if (ok) {
+    showApp();
+  } else {
+    document.getElementById('login-err').textContent = 'Pogrešna lozinka.';
+  }
+}
+
+function doLogout(){
+  VBP_ADMIN.logout();
+  document.getElementById('screen-app').classList.remove('active');
+  document.getElementById('screen-login').classList.add('active');
+}
+
+function showApp(){
+  document.getElementById('screen-login').classList.remove('active');
+  document.getElementById('screen-app').classList.add('active');
+  loadDashboard();
+}
+
+/* ─── NAVIGACIJA ───────────────────────────────────── */
+function goSection(name, el){
+  document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+  document.getElementById('sec-' + name).style.display = 'block';
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'news')      loadNews();
+  if (name === 'events')    loadEvents();
+  if (name === 'discounts') { loadPartners(); loadDiscounts(); }
+  if (name === 'citizens')  loadCitizens();
+  if (name === 'notify')    loadNotifHistory();
+  if (name === 'eps')       loadEpsLog();
+}
+
+/* ─── DASHBOARD ────────────────────────────────────── */
+async function loadDashboard(){
+  if (!sb) return;
+  try{
+    const { data } = await sb.rpc('admin_get_stats', { p_hash: VBP_ADMIN.getHash() });
+    if (data) {
+      const grid = document.getElementById('stats-grid');
+      grid.innerHTML = `
+        <div class="stat-card"><div class="stat-num">${data.citizens_total||0}</div><div class="stat-lbl">Ukupno meštana</div><div class="stat-trend trend-up">+${data.citizens_week||0} ove nedelje</div></div>
+        <div class="stat-card"><div class="stat-num">${data.citizens_today||0}</div><div class="stat-lbl">Novih danas</div></div>
+        <div class="stat-card"><div class="stat-num">${data.news_active||0}</div><div class="stat-lbl">Aktivnih vesti</div></div>
+        <div class="stat-card"><div class="stat-num">${data.opens_today||0}</div><div class="stat-lbl">Otvaranja danas</div></div>
+      `;
+    }
+  }catch(e){ console.log('stats error', e.message); }
+
+  await loadNews();
+  const tbody = document.getElementById('dash-recent-news');
+  tbody.innerHTML = cache.news.slice(0,5).map(n => `
+    <tr>
+      <td>${vbpEsc(n.title)}</td>
+      <td><span class="badge b-${n.category}">${n.category}</span></td>
+      <td>${n.is_active ? '<span class="badge b-active">Aktivna</span>' : '<span class="badge b-inactive">Skrivena</span>'}</td>
+      <td>${new Date(n.published_at).toLocaleDateString('sr-Latn-RS')}</td>
+    </tr>
+  `).join('') || '<tr><td class="empty">Nema vesti</td></tr>';
+}
+
+/* ─── VESTI ────────────────────────────────────────── */
+async function loadNews(){
+  if (!sb) return;
+  try{
+    const { data, error } = await sb.rpc('admin_get_all_news', { p_hash: VBP_ADMIN.getHash() });
+    if (error) throw error;
+    cache.news = data || [];
+  }catch(e){ cache.news = []; console.log('news load error', e.message); }
+  renderNewsTable();
+}
+
+function renderNewsTable(){
+  const q = (document.getElementById('news-search')?.value || '').toLowerCase();
+  const filtered = cache.news.filter(n => n.title.toLowerCase().includes(q));
+  const tbody = document.getElementById('news-tbody');
+  if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Nema vesti</td></tr>'; return; }
+  tbody.innerHTML = filtered.map(n => `
+    <tr>
+      <td><strong>${vbpEsc(n.title)}</strong>${n.is_urgent?' <span class="badge b-urgent">HITNO</span>':''}</td>
+      <td><span class="badge b-${n.category}">${n.category}</span></td>
+      <td>${n.is_active ? '<span class="badge b-active">Aktivna</span>' : '<span class="badge b-inactive">Skrivena</span>'}</td>
+      <td>${new Date(n.published_at).toLocaleDateString('sr-Latn-RS')}</td>
+      <td>${n.views||0}</td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn" onclick="editNews('${n.id}')" title="Izmeni">✏️</button>
+          <button class="icon-btn danger" onclick="deleteNews('${n.id}')" title="Obriši">🗑️</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openNewsModal(){
+  document.getElementById('news-modal-title').textContent = 'Nova vest';
+  document.getElementById('news-id').value = '';
+  document.getElementById('news-title').value = '';
+  document.getElementById('news-summary').value = '';
+  document.getElementById('news-body').value = '';
+  document.getElementById('news-category').value = 'vest';
+  document.getElementById('news-expires').value = '';
+  document.getElementById('news-urgent').checked = false;
+  document.getElementById('news-active').checked = true;
+  document.getElementById('modal-news').classList.add('open');
+}
+
+function editNews(id){
+  const n = cache.news.find(x => x.id === id);
+  if (!n) return;
+  document.getElementById('news-modal-title').textContent = 'Izmeni vest';
+  document.getElementById('news-id').value = n.id;
+  document.getElementById('news-title').value = n.title;
+  document.getElementById('news-summary').value = n.summary || '';
+  document.getElementById('news-body').value = n.body || '';
+  document.getElementById('news-category').value = n.category;
+  document.getElementById('news-expires').value = n.expires_at ? n.expires_at.slice(0,16) : '';
+  document.getElementById('news-urgent').checked = n.is_urgent;
+  document.getElementById('news-active').checked = n.is_active;
+  document.getElementById('modal-news').classList.add('open');
+}
+
+async function saveNews(){
+  const id = document.getElementById('news-id').value;
+  const title      = document.getElementById('news-title').value.trim();
+  const summary    = document.getElementById('news-summary').value.trim();
+  const body       = document.getElementById('news-body').value.trim();
+  const category   = document.getElementById('news-category').value;
+  const is_urgent  = document.getElementById('news-urgent').checked;
+  const is_active  = document.getElementById('news-active').checked;
+  const expires_at = document.getElementById('news-expires').value || null;
+
+  if (!title) { vbpToast('⚠️ Naslov je obavezan'); return; }
+
+  try{
+    const { error } = await sb.rpc('admin_upsert_news', {
+      p_hash: VBP_ADMIN.getHash(),
+      p_id: id || null,
+      p_title: title,
+      p_summary: summary,
+      p_body: body,
+      p_category: category,
+      p_is_urgent: is_urgent,
+      p_is_active: is_active,
+      p_expires_at: expires_at,
+    });
+    if (error) throw error;
+    vbpToast('✅ ' + (id ? 'Vest ažurirana' : 'Vest objavljena') + (is_urgent ? ' — Telegram notifikacija šalje se automatski' : ''));
+    closeModal('modal-news');
+    loadNews();
+  }catch(e){ vbpToast('❌ Greška: ' + e.message); }
+}
+
+async function deleteNews(id){
+  if (!confirm('Da li ste sigurni da želite da obrišete ovu vest?')) return;
+  try{
+    const { error } = await sb.rpc('admin_delete_news', { p_hash: VBP_ADMIN.getHash(), p_id: id });
+    if (error) throw error;
+    vbpToast('🗑️ Vest obrisana');
+    loadNews();
+  }catch(e){ vbpToast('❌ Greška: ' + e.message); }
+}
+
+/* ─── DOGAĐAJI ─────────────────────────────────────── */
+async function loadEvents(){
+  if (!sb) return;
+  try{
+    const { data, error } = await sb.rpc('admin_get_all_events', { p_hash: VBP_ADMIN.getHash() });
+    if (error) throw error;
+    cache.events = data || [];
+  }catch(e){ cache.events = []; }
+  renderEventsTable();
+}
+
+function renderEventsTable(){
+  const q = (document.getElementById('events-search')?.value || '').toLowerCase();
+  const filtered = cache.events.filter(e => e.title.toLowerCase().includes(q));
+  const tbody = document.getElementById('events-tbody');
+  if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Nema događaja</td></tr>'; return; }
+  tbody.innerHTML = filtered.map(e => `
+    <tr>
+      <td><strong>${vbpEsc(e.title)}</strong></td>
+      <td>${new Date(e.date_start).toLocaleDateString('sr-Latn-RS',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</td>
+      <td>${vbpEsc(e.location_name||'—')}</td>
+      <td><span class="badge b-vest">${e.category}</span></td>
+      <td>${e.is_active ? '<span class="badge b-active">Aktivan</span>' : '<span class="badge b-inactive">Skriven</span>'}</td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn" onclick="editEvent('${e.id}')" title="Izmeni">✏️</button>
+          <button class="icon-btn danger" onclick="deleteEvent('${e.id}')" title="Obriši">🗑️</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openEventModal(){
+  document.getElementById('event-modal-title').textContent = 'Novi događaj';
+  ['event-id','event-title','event-description','event-date-start','event-location','event-price','event-organizer']
+    .forEach(id => document.getElementById(id).value = '');
+  document.getElementById('event-category').value = 'zabava';
+  document.getElementById('event-active').checked = true;
+  document.getElementById('modal-event').classList.add('open');
+}
+
+function editEvent(id){
+  const e = cache.events.find(x => x.id === id);
+  if (!e) return;
+  document.getElementById('event-modal-title').textContent = 'Izmeni događaj';
+  document.getElementById('event-id').value = e.id;
+  document.getElementById('event-title').value = e.title;
+  document.getElementById('event-description').value = e.description || '';
+  document.getElementById('event-date-start').value = e.date_start ? e.date_start.slice(0,16) : '';
+  document.getElementById('event-category').value = e.category;
+  document.getElementById('event-location').value = e.location_name || '';
+  document.getElementById('event-price').value = e.price || '';
+  document.getElementById('event-organizer').value = e.organizer || '';
+  document.getElementById('event-active').checked = e.is_active;
+  document.getElementById('modal-event').classList.add('open');
+}
+
+async function saveEvent(){
+  const id = document.getElementById('event-id').value;
+  const title         = document.getElementById('event-title').value.trim();
+  const description   = document.getElementById('event-description').value.trim();
+  const date_start    = document.getElementById('event-date-start').value;
+  const category      = document.getElementById('event-category').value;
+  const location_name = document.getElementById('event-location').value.trim();
+  const price         = document.getElementById('event-price').value.trim();
+  const organizer     = document.getElementById('event-organizer').value.trim();
+  const is_active     = document.getElementById('event-active').checked;
+
+  if (!title || !date_start) { vbpToast('⚠️ Naziv i datum su obavezni'); return; }
+
+  try{
+    const { error } = await sb.rpc('admin_upsert_event', {
+      p_hash: VBP_ADMIN.getHash(),
+      p_id: id || null,
+      p_title: title,
+      p_description: description,
+      p_date_start: date_start,
+      p_category: category,
+      p_location_name: location_name,
+      p_price: price,
+      p_organizer: organizer,
+      p_is_active: is_active,
+    });
+    if (error) throw error;
+    vbpToast('✅ ' + (id ? 'Događaj ažuriran' : 'Događaj kreiran'));
+    closeModal('modal-event');
+    loadEvents();
+  }catch(e){ vbpToast('❌ Greška: ' + e.message); }
+}
+
+async function deleteEvent(id){
+  if (!confirm('Obrisati ovaj događaj?')) return;
+  try{
+    const { error } = await sb.rpc('admin_delete_event', { p_hash: VBP_ADMIN.getHash(), p_id: id });
+    if (error) throw error;
+    vbpToast('🗑️ Događaj obrisan');
+    loadEvents();
+  }catch(e){ vbpToast('❌ Greška: ' + e.message); }
+}
+
+/* ─── PARTNERI ─────────────────────────────────────── */
+async function loadPartners(){
+  if (!sb) return;
+  try{
+    const { data, error } = await sb.rpc('admin_get_all_partners', { p_hash: VBP_ADMIN.getHash() });
+    if (error) throw error;
+    cache.partners = data || [];
+  }catch(e){ cache.partners = []; }
+  renderPartnersTable();
+  populateDiscountPartnerSelect();
+}
+
+function renderPartnersTable(){
+  const q = (document.getElementById('partners-search')?.value || '').toLowerCase();
+  const filtered = cache.partners.filter(p => p.name.toLowerCase().includes(q));
+  const tbody = document.getElementById('partners-tbody');
+  if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Nema partnera</td></tr>'; return; }
+  tbody.innerHTML = filtered.map(p => `
+    <tr>
+      <td><strong>${vbpEsc(p.name)}</strong></td>
+      <td>${vbpEsc(p.type||'—')}</td>
+      <td>${vbpEsc(p.phone||'—')}</td>
+      <td>${p.is_active ? '<span class="badge b-active">Aktivan</span>' : '<span class="badge b-inactive">Neaktivan</span>'}</td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn" onclick="editPartner('${p.id}')" title="Izmeni">✏️</button>
+          <button class="icon-btn danger" onclick="deletePartner('${p.id}')" title="Obriši">🗑️</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openPartnerModal(){
+  document.getElementById('partner-modal-title').textContent = 'Novi partner';
+  ['partner-id','partner-name','partner-phone','partner-address','partner-hours']
+    .forEach(id => document.getElementById(id).value = '');
+  document.getElementById('partner-type').value = 'kafana';
+  document.getElementById('partner-active').checked = true;
+  document.getElementById('modal-partner').classList.add('open');
+}
+
+function editPartner(id){
+  const p = cache.partners.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('partner-modal-title').textContent = 'Izmeni partnera';
+  document.getElementById('partner-id').value = p.id;
+  document.getElementById('partner-name').value = p.name;
+  document.getElementById('partner-type').value = p.type || 'kafana';
+  document.getElementById('partner-phone').value = p.phone || '';
+  document.getElementById('partner-address').value = p.address || '';
+  document.getElementById('partner-hours').value = p.working_hours || '';
+  document.getElementById('partner-active').checked = p.is_active;
+  document.getElementById('modal-partner').classList.add('open');
+}
+
+async function savePartner(){
+  const id = document.getElementById('partner-id').value;
+  const name          = document.getElementById('partner-name').value.trim();
+  const type          = document.getElementById('partner-type').value;
+  const phone         = document.getElementById('partner-phone').value.trim();
+  const address       = document.getElementById('partner-address').value.trim();
+  const working_hours = document.getElementById('partner-hours').value.trim();
+  const is_active     = document.getElementById('partner-active').checked;
+
+  if (!name) { vbpToast('⚠️ Naziv je obavezan'); return; }
+
+  try{
+    const { error } = await sb.rpc('admin_upsert_partner', {
+      p_hash: VBP_ADMIN.getHash(),
+      p_id: id || null,
+      p_name: name,
+      p_type: type,
+      p_phone: phone,
+      p_address: address,
+      p_working_hours: working_hours,
+      p_is_active: is_active,
+    });
+    if (error) throw error;
+    vbpToast('✅ ' + (id ? 'Partner ažuriran' : 'Partner dodat'));
+    closeModal('modal-partner');
+    loadPartners();
+  }catch(e){ vbpToast('❌ Greška: ' + e.message); }
+}
+
+async function deletePartner(id){
+  if (!confirm('Obrisati ovog partnera? Brišu se i svi njegovi popusti.')) return;
+  try{
+    const { error } = await sb.rpc('admin_delete_partner', { p_hash: VBP_ADMIN.getHash(), p_id: id });
+    if (error) throw error;
+    vbpToast('🗑️ Partner obrisan');
+    loadPartners();
+    loadDiscounts();
+  }catch(e){ vbpToast('❌ Greška: ' + e.message); }
+}
+
+/* ─── POPUSTI ──────────────────────────────────────── */
+async function loadDiscounts(){
+  if (!sb) return;
+  try{
+    const { data, error } = await sb.rpc('admin_get_all_discounts', { p_hash: VBP_ADMIN.getHash() });
+    if (error) throw error;
+    cache.discounts = (data || []).map(d => ({ ...d, vbp_partners: { name: d.partner_name } }));
+  }catch(e){ cache.discounts = []; }
+  renderDiscountsTable();
+}
+
+function renderDiscountsTable(){
+  const tbody = document.getElementById('discounts-tbody');
+  if (!cache.discounts.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Nema popusta</td></tr>'; return; }
+  tbody.innerHTML = cache.discounts.map(d => `
+    <tr>
+      <td><strong>${vbpEsc(d.vbp_partners?.name||'—')}</strong></td>
+      <td>${d.percent}% — ${vbpEsc(d.title)}</td>
+      <td>${vbpEsc(d.conditions||'—')}</td>
+      <td>${d.is_active ? '<span class="badge b-active">Aktivan</span>' : '<span class="badge b-inactive">Neaktivan</span>'}</td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn" onclick="editDiscount('${d.id}')" title="Izmeni">✏️</button>
+          <button class="icon-btn danger" onclick="deleteDiscount('${d.id}')" title="Obriši">🗑️</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function populateDiscountPartnerSelect(){
+  const sel = document.getElementById('discount-partner');
+  sel.innerHTML = cache.partners.map(p => `<option value="${p.id}">${vbpEsc(p.name)}</option>`).join('');
+}
+
+function openDiscountModal(){
+  document.getElementById('discount-modal-title').textContent = 'Novi popust';
+  document.getElementById('discount-id').value = '';
+  document.getElementById('discount-title').value = '';
+  document.getElementById('discount-description').value = '';
+  document.getElementById('discount-percent').value = '';
+  document.getElementById('discount-valid-until').value = '';
+  document.getElementById('discount-conditions').value = 'Uz prikaz VBPuls Znacke';
+  document.getElementById('discount-active').checked = true;
+  document.getElementById('modal-discount').classList.add('open');
+}
+
+function editDiscount(id){
+  const d = cache.discounts.find(x => x.id === id);
+  if (!d) return;
+  document.getElementById('discount-modal-title').textContent = 'Izmeni popust';
+  document.getElementById('discount-id').value = d.id;
+  document.getElementById('discount-partner').value = d.partner_id;
+  document.getElementById('discount-title').value = d.title;
+  document.getElementById('discount-description').value = d.description || '';
+  document.getElementById('discount-percent').value = d.percent;
+  document.getElementById('discount-valid-until').value = d.valid_until || '';
+  document.getElementById('discount-conditions').value = d.conditions || '';
+  document.getElementById('discount-active').checked = d.is_active;
+  document.getElementById('modal-discount').classList.add('open');
+}
+
+async function saveDiscount(){
+  const id = document.getElementById('discount-id').value;
+  const partner_id  = document.getElementById('discount-partner').value;
+  const title       = document.getElementById('discount-title').value.trim();
+  const description = document.getElementById('discount-description').value.trim();
+  const percent     = parseInt(document.getElementById('discount-percent').value) || 0;
+  const valid_until = document.getElementById('discount-valid-until').value || null;
+  const conditions  = document.getElementById('discount-conditions').value.trim();
+  const is_active   = document.getElementById('discount-active').checked;
+
+  if (!title || !partner_id || !percent) { vbpToast('⚠️ Popunite obavezna polja'); return; }
+
+  try{
+    const { error } = await sb.rpc('admin_upsert_discount', {
+      p_hash: VBP_ADMIN.getHash(),
+      p_id: id || null,
+      p_partner_id: partner_id,
+      p_title: title,
+      p_description: description,
+      p_percent: percent,
+      p_conditions: conditions,
+      p_valid_until: valid_until,
+      p_is_active: is_active,
+    });
+    if (error) throw error;
+    vbpToast('✅ ' + (id ? 'Popust ažuriran' : 'Popust dodat'));
+    closeModal('modal-discount');
+    loadDiscounts();
+  }catch(e){ vbpToast('❌ Greška: ' + e.message); }
+}
+
+async function deleteDiscount(id){
+  if (!confirm('Obrisati ovaj popust?')) return;
+  try{
+    const { error } = await sb.rpc('admin_delete_discount', { p_hash: VBP_ADMIN.getHash(), p_id: id });
+    if (error) throw error;
+    vbpToast('🗑️ Popust obrisan');
+    loadDiscounts();
+  }catch(e){ vbpToast('❌ Greška: ' + e.message); }
+}
+
+/* ─── MEŠTANI ──────────────────────────────────────── */
+async function loadCitizens(){
+  if (!sb) return;
+  try{
+    const { data, error } = await sb.rpc('admin_get_citizens', { p_hash: VBP_ADMIN.getHash() });
+    if (error) throw error;
+    cache.citizens = data || [];
+  }catch(e){ cache.citizens = []; }
+  document.getElementById('citizens-count').textContent = `Ukupno: ${cache.citizens.length}`;
+  renderCitizensTable();
+}
+
+function renderCitizensTable(){
+  const q = (document.getElementById('citizens-search')?.value || '').toLowerCase();
+  const filtered = cache.citizens.filter(c =>
+    c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q)
+  );
+  const tbody = document.getElementById('citizens-tbody');
+  if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Nema rezultata</td></tr>'; return; }
+  tbody.innerHTML = filtered.map(c => `
+    <tr>
+      <td><strong>${vbpEsc(c.name)}</strong></td>
+      <td>${vbpEsc(c.kvart)}</td>
+      <td>${vbpEsc(c.email)}</td>
+      <td>${c.telegram_chat_id ? '✅ Povezan' : '—'}</td>
+      <td>${c.ref_count||0}</td>
+      <td>${new Date(c.created_at).toLocaleDateString('sr-Latn-RS')}</td>
+    </tr>
+  `).join('');
+}
+
+/* ─── NOTIFIKACIJE ─────────────────────────────────── */
+function selectTarget(el){
+  document.querySelectorAll('.target-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  notifTarget = el.dataset.val;
+}
+
+async function sendNotification(){
+  const title = document.getElementById('notif-title').value.trim();
+  const body  = document.getElementById('notif-body').value.trim();
+  if (!title || !body) { vbpToast('⚠️ Naslov i tekst su obavezni'); return; }
+
+  try{
+    // Kreiraj kao hitnu vest preko admin RPC-a — trigger automatski šalje na Telegram
+    const { error } = await sb.rpc('admin_upsert_news', {
+      p_hash: VBP_ADMIN.getHash(),
+      p_id: null,
+      p_title: title,
+      p_summary: body.slice(0,150),
+      p_body: body,
+      p_category: 'hitno',
+      p_is_urgent: true,
+      p_is_active: true,
+      p_expires_at: null,
+    });
+    if (error) throw error;
+
+    vbpToast('📤 Obaveštenje poslato na Telegram!');
+    document.getElementById('notif-title').value = '';
+    document.getElementById('notif-body').value = '';
+    loadNotifHistory();
+  }catch(e){ vbpToast('❌ Greška: ' + e.message); }
+}
+
+async function loadNotifHistory(){
+  if (!sb) return;
+  try{
+    const { data, error } = await sb.rpc('admin_get_notifications', { p_hash: VBP_ADMIN.getHash() });
+    if (error) throw error;
+    cache.notifications = data || [];
+  }catch(e){ cache.notifications = []; }
+
+  const tbody = document.getElementById('notif-history-tbody');
+  if (!cache.notifications.length) { tbody.innerHTML = '<tr><td colspan="4" class="empty">Nema poslatih notifikacija</td></tr>'; return; }
+  tbody.innerHTML = cache.notifications.map(n => `
+    <tr>
+      <td><strong>${vbpEsc(n.title)}</strong></td>
+      <td>${vbpEsc(n.target)}</td>
+      <td>${n.sent_count||0}</td>
+      <td>${new Date(n.sent_at).toLocaleString('sr-Latn-RS')}</td>
+    </tr>
+  `).join('');
+}
+
+/* ─── EPS LOG ──────────────────────────────────────── */
+async function loadEpsLog(){
+  if (!sb) return;
+  try{
+    const { data, error } = await sb.rpc('admin_get_eps_log', { p_hash: VBP_ADMIN.getHash() });
+    if (error) throw error;
+    cache.epsLog = data || [];
+  }catch(e){ cache.epsLog = []; }
+
+  const tbody = document.getElementById('eps-log-tbody');
+  if (!cache.epsLog.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Nema zapisa — scraper se još nije pokrenuo</td></tr>'; return; }
+  tbody.innerHTML = cache.epsLog.map(l => `
+    <tr>
+      <td>${new Date(l.scraped_at).toLocaleString('sr-Latn-RS')}</td>
+      <td>${l.day_offset === 0 ? 'Danas' : l.day_offset === 1 ? 'Sutra' : 'Prekosutra'}</td>
+      <td>${l.rows_found}</td>
+      <td>${l.vbp_rows_found}</td>
+      <td>${l.news_created}</td>
+      <td>${l.status === 'ok' ? '<span class="badge b-active">OK</span>' : '<span class="badge b-urgent">Greška</span>'}</td>
+    </tr>
+  `).join('');
+}
+
+async function runEpsScraperNow(){
+  vbpToast('🔄 Pokrećem EPS scraper...');
+  try{
+    const res = await fetch(`${VBP_CONFIG.SUPABASE_URL}/functions/v1/eps-scraper`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${VBP_CONFIG.SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+    });
+    const data = await res.json();
+    vbpToast(`✅ Gotovo: ${data.summary || 'Pokrenuto'}`);
+    loadEpsLog();
+  }catch(e){ vbpToast('❌ Greška pri pokretanju: ' + e.message); }
+}
+
+/* ─── MODAL HELPER ─────────────────────────────────── */
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+</script>
+</body>
+</html>
