@@ -889,7 +889,7 @@ body::after{
         <label class="f-label">Ime i prezime</label>
         <input class="f-input" id="inp-ime" type="text" placeholder="npr. Marija Petrović" autocomplete="name" autocorrect="off">
         <label class="f-label">Naselje</label>
-        <select class="f-input f-select" id="inp-kvart">
+        <select class="f-input f-select" id="inp-kvart" onchange="toggleGradskaNaselja()">
           <option value="Vrnjačka Banja">Vrnjačka Banja</option>
           <option value="Vraneši">Vraneši</option>
           <option value="Vrnjci">Vrnjci</option>
@@ -905,6 +905,24 @@ body::after{
           <option value="Stanišinci">Stanišinci</option>
           <option value="Štulac">Štulac</option>
         </select>
+
+        <div id="gradska-naselja-wrap" style="display:none">
+          <label class="f-label">Gradsko naselje (opciono)</label>
+          <select class="f-input f-select" id="inp-gradsko-naselje">
+            <option value="">— Izaberite deo grada —</option>
+            <option value="Arena">Arena</option>
+            <option value="Pahuljica">Pahuljica</option>
+            <option value="ŽTP">ŽTP</option>
+            <option value="Borjak">Borjak</option>
+            <option value="Snežnik">Snežnik</option>
+            <option value="Beli izvor">Beli izvor</option>
+            <option value="Opština">Opština</option>
+            <option value="Ada">Ada</option>
+            <option value="Škola">Škola</option>
+            <option value="Solidarnost">Solidarnost</option>
+            <option value="Teretana">Teretana</option>
+          </select>
+        </div>
         <label class="f-label">Email adresa</label>
         <input class="f-input" id="inp-mail" type="email" placeholder="vas@email.com" autocomplete="email" inputmode="email">
         <p class="f-hint">Vaš email koristimo isključivo za obaveštenja vezana za Vrnjačku Banju — nikad ne delimo podatke sa trećim licima niti šaljemo komercijalne poruke.</p>
@@ -1354,6 +1372,15 @@ const catBg = cat => ({
 /* ─── ONBOARD ─────────────────────────────────────── */
 const onbLabels = ['Počnimo →','Napravi profil →','Uđi u VBPuls →'];
 
+function toggleGradskaNaselja(){
+  const val = document.getElementById('inp-kvart').value;
+  const wrap = document.getElementById('gradska-naselja-wrap');
+  wrap.style.display = (val === 'Vrnjačka Banja') ? 'block' : 'none';
+  if(val !== 'Vrnjačka Banja'){
+    document.getElementById('inp-gradsko-naselje').value = '';
+  }
+}
+
 function onbNext(){
   if(onbStep === 0){ setOnbStep(1); return; }
   if(onbStep === 1){
@@ -1367,7 +1394,11 @@ function onbNext(){
     if(!consent){ setErr('Potrebna je saglasnost za korišćenje email adrese.'); return; }
     setErr('');
     user.name  = ime;
-    user.kvart = document.getElementById('inp-kvart').value.trim() || 'Vrnjačka Banja';
+    const kvartBase = document.getElementById('inp-kvart').value.trim() || 'Vrnjačka Banja';
+    const gradskoNaselje = document.getElementById('inp-gradsko-naselje')?.value.trim() || '';
+    user.kvart = (kvartBase === 'Vrnjačka Banja' && gradskoNaselje)
+      ? `Vrnjačka Banja — ${gradskoNaselje}`
+      : kvartBase;
     user.mail  = mail;
     user.id    = 'VBP-' + new Date().getFullYear() + '-' + Math.floor(1000+Math.random()*8999);
     user.shareUrl = CFG.APP_URL + '/?ref=' + user.id;
